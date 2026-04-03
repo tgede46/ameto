@@ -31,7 +31,8 @@ const propertySlice = createSlice({
       })
       .addCase(fetchProperties.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = action.payload;
+        // Gérer la pagination si l'API renvoie un objet avec une clé 'results'
+        state.list = Array.isArray(action.payload) ? action.payload : (action.payload.results || []);
       })
       .addCase(fetchProperties.rejected, (state, action) => {
         state.loading = false;

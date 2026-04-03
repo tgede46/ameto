@@ -23,7 +23,7 @@ const staggerContainer = {
 export default function Register() {
   const [step, setStep] = useState(0);
   const [showPass, setShowPass] = useState(false);
-  const [form, setForm] = useState({ username: '', first_name: '', last_name: '', phone: '', email: '', password: '', role: 'CLIENT' });
+  const [form, setForm] = useState({ prenom: '', nom: '', telephone: '', email: '', password: '', role: 'CLIENT' });
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -36,12 +36,11 @@ export default function Register() {
     if (step < 1) { setStep(s => s + 1); return; }
     
     const result = await dispatch(registerUser({
-      username: form.username,
       password: form.password,
       email: form.email,
-      first_name: form.first_name,
-      last_name: form.last_name,
-      telephone: form.phone,
+      prenom: form.prenom,
+      nom: form.nom,
+      telephone: form.telephone,
       role: form.role
     }));
 
@@ -164,30 +163,14 @@ export default function Register() {
 
                 {step === 0 && (
                   <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-5">
-                    {/* Username */}
-                    <motion.div variants={fadeUp} className="space-y-2">
-                      <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Nom d'utilisateur</label>
-                      <div className="relative group">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#FF385C] transition-colors duration-300" size={20} strokeWidth={2} />
-                        <input
-                          type="text"
-                          value={form.username}
-                          onChange={e => update('username', e.target.value)}
-                          placeholder="votre_nom"
-                          required
-                          className="w-full bg-[#F9FAFB] border border-gray-200 text-gray-900 text-[15px] rounded-2xl pl-12 pr-4 py-4 outline-none transition-all duration-300 focus:bg-white focus:border-[#FF385C] focus:shadow-[0_0_0_4px_rgba(255,56,92,0.1)] placeholder:text-gray-400"
-                        />
-                      </div>
-                    </motion.div>
-
                     <div className="grid grid-cols-2 gap-4">
                       {/* Prénom */}
                       <motion.div variants={fadeUp} className="space-y-2">
                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Prénom</label>
                         <input
                           type="text"
-                          value={form.first_name}
-                          onChange={e => update('first_name', e.target.value)}
+                          value={form.prenom}
+                          onChange={e => update('prenom', e.target.value)}
                           placeholder="Afi"
                           required
                           className="w-full bg-[#F9FAFB] border border-gray-200 text-gray-900 text-[15px] rounded-2xl px-4 py-4 outline-none transition-all duration-300 focus:bg-white focus:border-[#FF385C] focus:shadow-[0_0_0_4px_rgba(255,56,92,0.1)] placeholder:text-gray-400"
@@ -198,8 +181,8 @@ export default function Register() {
                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Nom</label>
                         <input
                           type="text"
-                          value={form.last_name}
-                          onChange={e => update('last_name', e.target.value)}
+                          value={form.nom}
+                          onChange={e => update('nom', e.target.value)}
                           placeholder="Mensah"
                           required
                           className="w-full bg-[#F9FAFB] border border-gray-200 text-gray-900 text-[15px] rounded-2xl px-4 py-4 outline-none transition-all duration-300 focus:bg-white focus:border-[#FF385C] focus:shadow-[0_0_0_4px_rgba(255,56,92,0.1)] placeholder:text-gray-400"
@@ -214,8 +197,8 @@ export default function Register() {
                         <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#FF385C] transition-colors duration-300" size={20} strokeWidth={2} />
                         <input
                           type="tel"
-                          value={form.phone}
-                          onChange={e => update('phone', e.target.value)}
+                          value={form.telephone}
+                          onChange={e => update('telephone', e.target.value)}
                           placeholder="+228 90 00 00 00"
                           required
                           className="w-full bg-[#F9FAFB] border border-gray-200 text-gray-900 text-[15px] rounded-2xl pl-12 pr-4 py-4 outline-none transition-all duration-300 focus:bg-white focus:border-[#FF385C] focus:shadow-[0_0_0_4px_rgba(255,56,92,0.1)] placeholder:text-gray-400"

@@ -125,7 +125,7 @@ export default function Login() {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-medium border border-red-100"
               >
-                {error}
+                {typeof error === 'object' ? (error.detail || error.message || JSON.stringify(error)) : error}
               </motion.div>
             )}
             

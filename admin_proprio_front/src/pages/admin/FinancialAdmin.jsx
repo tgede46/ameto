@@ -1,29 +1,35 @@
-﻿import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchPayments } from '../../store/slices/financialSlice';
 import Card, { CardBody, CardHeader } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { DollarSign, TrendingUp, Download, Calendar, Plus, Edit, Trash2, Eye, FileText } from 'lucide-react';
 
 const FinancialAdmin = () => {
+  const dispatch = useDispatch();
+  const { payments, loading, error } = useSelector(state => state.financial);
   const [selectedYear, setSelectedYear] = useState('2026');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  
-  const [transactions, setTransactions] = useState([
-    { id: 1, property: 'T2 Tokoin', amount: 150000, commission: 15000, owner: 'M. Koffi', date: '01/03/2026', status: 'paye', type: 'loyer' },
-    { id: 2, property: 'Studio Adidogome', amount: 85000, commission: 8500, owner: 'M. Koffi', date: '28/02/2026', status: 'paye', type: 'loyer' },
-    { id: 3, property: 'Villa Lome', amount: 450000, commission: 45000, owner: 'M. Koffi', date: '25/02/2026', status: 'en_attente', type: 'loyer' },
-    { id: 4, property: 'Local Commercial', amount: 500000, commission: 50000, owner: 'Mme Ama', date: '20/02/2026', status: 'paye', type: 'commission_vente' },
-  ]);
+
+  useEffect(() => {
+    dispatch(fetchPayments());
+  }, [dispatch]);
   
   const stats = {
-    totalRevenue: transactions.reduce((sum, t) => t.status === 'paye' ? sum + t.amount : sum, 0),
-    totalCommission: transactions.reduce((sum, t) => t.status === 'paye' ? sum + t.commission : sum, 0),
-    pendingAmount: transactions.reduce((sum, t) => t.status === 'en_attente' ? sum + t.amount : sum, 0),
-    totalProperties: 156,
+    totalRevenue: payments?.reduce((sum, t) => t.statut === 'valide' ? sum + t.montant : sum, 0) || 0,
+    totalCommission: payments?.reduce((sum, t) => t.statut === 'valide' ? sum + (t.montant * 0.1) : sum, 0) || 0, // 10% par défaut
+    pendingAmount: payments?.reduce((sum, t) => t.statut === 'en_attente' ? sum + t.montant : sum, 0) || 0,
+    totalProperties: 0,
   };
+
+  if (loading) return <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>;
+  if (error) return <div className="p-6 bg-red-50 text-red-600 rounded-2xl">{error}</div>;
+
   
   return (
     <div className="space-y-6 animate-fade-in">
@@ -44,7 +50,20 @@ const FinancialAdmin = () => {
         <Button variant="outline"><FileText size={16} className="mr-2" />Rapport fiscal DGI</Button>
       </div>
       
-      <Card><CardHeader><h3 className="text-lg font-bold">Transactions</h3></CardHeader><CardBody><div className="overflow-x-auto"><table className="w-full"><thead className="border-b border-border"><tr><th className="p-4 text-left">Bien</th><th className="p-4 text-left">Propriétaire</th><th className="p-4 text-right">Montant</th><th className="p-4 text-right">Commission</th><th className="p-4 text-left">Date</th><th className="p-4 text-left">Statut</th><th className="p-4 text-left">Actions</th></tr></thead><tbody>{transactions.map(t => (<tr key={t.id} className="border-b border-border hover:bg-gray-50"><td className="p-4 font-medium">{t.property}</td><td className="p-4">{t.owner}</td><td className="p-4 text-right">{t.amount.toLocaleString()} CFA</td><td className="p-4 text-right">{t.commission.toLocaleString()} CFA</td><td className="p-4">{t.date}</td><td className="p-4"><Badge variant={t.status === 'paye' ? 'success' : 'warning'}>{t.status === 'paye' ? 'Payé' : 'En attente'}</Badge></td><td className="p-4"><div className="flex space-x-2"><button onClick={() => { setSelectedTransaction(t); setShowDetailModal(true); }} className="p-1 hover:bg-gray-100 rounded"><Eye size={16} /></button><button className="p-1 hover:bg-gray-100 rounded"><Edit size={16} /></button></div></td></tr>))}</tbody></table></div></CardBody></Card>
+      <Card><CardHeader><h3 className="text-lg font-bold">Transactions</h3></CardHeader><CardBody><div className="overflow-x-auto"><table className="w-full"><thead className="border-b border-border"><tr><th className="p-4 text-left">Bien</th><th className="p-4 text-left">Propriétaire</th><th className="p-4 text-right">Montant</th><th className="p-4 text-right">Commission</th><th className="p-4 text-left">Date</th><th className="p-4 text-left">Statut</th><th className="p-4 text-left">Actions</th></tr></thead><tbody>
+              {payments?.map((t) => (
+                <tr key={t.id} className="border-b border-border hover:bg-gray-50 transition-colors">
+                  <td className="p-4 font-medium">{t.bien_nom || 'N/A'}</td>
+                  <td className="p-4 text-secondary">{t.proprietaire_nom || 'N/A'}</td>
+                  <td className="p-4 text-right text-secondary">{t.montant.toLocaleString()} CFA</td>
+                  <td className="p-4 text-right text-secondary">{(t.montant * 0.1).toLocaleString()} CFA</td>
+                  <td className="p-4 text-secondary">{new Date(t.date_paiement).toLocaleDateString()}</td>
+                  <td className="p-4">
+                    <Badge variant={t.statut === 'valide' ? 'success' : 'warning'}>
+                      {t.statut === 'valide' ? 'Payé' : 'En attente'}
+                    </Badge>
+                  </td>
+                  <td className="p-4"><div className="flex space-x-2"><button onClick={() => { setSelectedTransaction(t); setShowDetailModal(true); }} className="p-1 hover:bg-gray-100 rounded"><Eye size={16} /></button><button className="p-1 hover:bg-gray-100 rounded"><Edit size={16} /></button></div></td></tr>))}</tbody></table></div></CardBody></Card>
       
       <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Ajouter une transaction"><div className="space-y-4"><div><label>Type</label><select className="input-field"><option>Loyer</option><option>Commission vente</option><option>Frais agence</option></select></div><div><label>Montant (CFA)</label><input type="number" className="input-field" /></div><div><label>Commission (CFA)</label><input type="number" className="input-field" /></div><div><label>Date</label><input type="date" className="input-field" /></div><div className="flex space-x-3"><Button variant="outline" className="flex-1">Annuler</Button><Button variant="primary" className="flex-1">Ajouter</Button></div></div></Modal>
       

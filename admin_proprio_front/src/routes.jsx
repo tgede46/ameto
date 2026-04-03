@@ -1,5 +1,7 @@
-﻿import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
+import Login from './pages/Login';
+import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminLayout from './components/layout/AdminLayout';
 import OwnerLayout from './components/layout/OwnerLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -20,11 +22,16 @@ import AddPropertyOwner from './pages/owner/AddPropertyOwner';
 
 export const router = createBrowserRouter([
   { path: '/', element: <Home /> },
+  { path: '/login', element: <Login /> },
   {
     path: '/admin',
-    element: <AdminLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['ADMIN']}>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
     children: [
-      { index: true, element: <AdminDashboard /> },
+      { index: true, element: <Navigate to="dashboard" replace /> },
       { path: 'dashboard', element: <AdminDashboard /> },
       { path: 'properties', element: <PropertiesAdmin /> },
       { path: 'users', element: <UsersAdmin /> },
@@ -37,9 +44,13 @@ export const router = createBrowserRouter([
   },
   {
     path: '/owner',
-    element: <OwnerLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['PROPRIETAIRE']}>
+        <OwnerLayout />
+      </ProtectedRoute>
+    ),
     children: [
-      { index: true, element: <OwnerDashboard /> },
+      { index: true, element: <Navigate to="dashboard" replace /> },
       { path: 'dashboard', element: <OwnerDashboard /> },
       { path: 'properties', element: <PropertiesOwner /> },
       { path: 'properties/add', element: <AddPropertyOwner /> },
@@ -49,4 +60,5 @@ export const router = createBrowserRouter([
       { path: 'chat', element: <ChatOwner /> },
     ],
   },
+  { path: '*', element: <Navigate to="/" replace /> },
 ]);

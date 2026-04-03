@@ -1,21 +1,27 @@
-﻿import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchMaintenanceRequests } from '../../store/slices/maintenanceSlice';
 import Card, { CardBody, CardHeader } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Wrench, CheckCircle, Clock, AlertCircle, Search, Filter, Eye, Check, X, MessageSquare } from 'lucide-react';
 
 const MaintenanceAdmin = () => {
+  const dispatch = useDispatch();
+  const { requests, loading, error } = useSelector(state => state.maintenance);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
-  
-  const [requests, setRequests] = useState([
-    { id: 1, property: 'T2 Tokoin', tenant: 'Mme Afi', issue: 'Fuite d\'eau', description: 'Fuite importante dans la douche', priority: 'urgent', status: 'pending', date: '05/03/2026', estimatedCost: 50000, assignedTo: null },
-    { id: 2, property: 'Villa Lomé', tenant: 'Mme Sarah', issue: 'Climatisation', description: 'Climatisation du salon en panne', priority: 'normal', status: 'in_progress', date: '03/03/2026', estimatedCost: 75000, assignedTo: 'Plombier Ahmed' },
-    { id: 3, property: 'Studio Adidogomé', tenant: 'M. Jean', issue: 'Problème électrique', description: 'Prises ne fonctionnent pas', priority: 'normal', status: 'completed', date: '28/02/2026', estimatedCost: 35000, assignedTo: 'Electricien Kofi' },
-  ]);
+
+  useEffect(() => {
+    dispatch(fetchMaintenanceRequests());
+  }, [dispatch]);
+
+  if (loading) return <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>;
+  if (error) return <div className="p-6 bg-red-50 text-red-600 rounded-2xl">{error}</div>;
   
   const technicians = ['Plombier Ahmed', 'Electricien Kofi', 'Menuisier Yao', 'Peintre Ama', 'Climatisation Serge'];
   
@@ -89,26 +95,22 @@ const MaintenanceAdmin = () => {
             <tr><th className="p-4 text-left">Bien</th><th className="p-4 text-left">Locataire</th><th className="p-4 text-left">Problème</th><th className="p-4 text-left">Priorité</th><th className="p-4 text-left">Statut</th><th className="p-4 text-left">Technicien</th><th className="p-4 text-left">Actions</th></tr>
           </thead>
           <tbody>
-            {filteredRequests.map(req => {
-              const statusConfig = getStatusConfig(req.status);
-              const priorityConfig = getPriorityConfig(req.priority);
-              const StatusIcon = statusConfig.icon;
-              return (
-                <tr key={req.id} className="border-b border-border hover:bg-gray-50">
-                  <td className="p-4 font-medium">{req.property}</td>
-                  <td className="p-4">{req.tenant}</td>
-                  <td className="p-4">{req.issue}</td>
-                  <td className="p-4"><Badge variant={priorityConfig.variant}>{priorityConfig.label}</Badge></td>
-                  <td className="p-4"><Badge variant={statusConfig.variant}><StatusIcon size={12} className="inline mr-1" />{statusConfig.label}</Badge></td>
-                  <td className="p-4">{req.assignedTo || '-'}</td>
-                  <td className="p-4"><div className="flex space-x-2">
-                    <button onClick={() => { setSelectedRequest(req); setShowDetailsModal(true); }} className="p-1 hover:bg-gray-100 rounded"><Eye size={18} /></button>
-                    {req.status === 'pending' && <button onClick={() => { setSelectedRequest(req); setShowAssignModal(true); }} className="p-1 hover:bg-gray-100 rounded"><Check size={18} className="text-success" /></button>}
-                    {req.status === 'in_progress' && <button onClick={() => handleComplete(req.id)} className="p-1 hover:bg-gray-100 rounded"><CheckCircle size={18} className="text-success" /></button>}
-                  </div></td>
-                </tr>
-              );
-            })}
+            {filteredRequests?.map((req) => (
+              <tr key={req.id} className="border-b border-border hover:bg-gray-50 transition-colors">
+                <td className="p-4 font-medium">{req.bien_nom || 'N/A'}</td>
+                <td className="p-4">{req.locataire || '-'}</td>
+                <td className="p-4 text-secondary">{req.titre || req.issue}</td>
+                <td className="p-4 text-secondary">{req.date_creation ? new Date(req.date_creation).toLocaleDateString() : '-'}</td>
+                <td className="p-4"><Badge variant={getPriorityConfig(req.priorite || req.priority).variant}>{getPriorityConfig(req.priorite || req.priority).label}</Badge></td>
+                <td className="p-4"><Badge variant={getStatusConfig(req.statut || req.status).variant}>{getStatusConfig(req.statut || req.status).label}</Badge></td>
+                <td className="p-4">
+                  <div className="flex space-x-2">
+                    <button onClick={() => { setSelectedRequest(req); setShowDetailsModal(true); }} className="p-1 hover:bg-gray-100 rounded text-brand-500"><Eye size={18} /></button>
+                    {(req.statut || req.status) === 'pending' && <button onClick={() => { setSelectedRequest(req); setShowAssignModal(true); }} className="p-1 hover:bg-gray-100 rounded text-success"><Check size={18} /></button>}
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

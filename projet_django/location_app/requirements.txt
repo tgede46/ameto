@@ -1,0 +1,16 @@
+django>=5.0
+djangorestframework>=3.15
+djangorestframework-simplejwt>=5.3   # authentification JWT
+pillow>=10.0          # gestion des images (photos biens)
+reportlab>=4.0        # génération de PDF (quittances)
+python-decouple>=3.8  # variables d'environnement (.env)
+dj-rest-auth[with_social]>=5.0.0
+django-allauth>=0.61.1
+channels>=4.0         # support WebSocket
+daphne>=4.0           # serveur ASGI pour Django Channels
+channels-redis>=4.0   # backend Redis pour Channels
+pyotp>=2.9            # génération codes TOTP (2FA)
+qrcode>=7.4           # génération QR codes pour Google Authenticator
+drf-yasg>=1.21.7      # documentation API Swagger/Redoc
+django-cors-headers>=4.3.1 # gestion du CORS
+psycopg2-binary>=2.9.9 # driver PostgreSQL

@@ -1,5 +1,8 @@
-﻿import React from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
+import logoAmeto from '../../assets/logo_ameto.png';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../store/slices/authSlice';
 import { 
   LayoutDashboard, 
   Building2, 
@@ -17,7 +20,15 @@ import {
 } from 'lucide-react';
 
 const Sidebar = ({ userRole }) => {
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    window.location.href = '/';
+  };
+
   const adminMenuItems = [
+
     { icon: LayoutDashboard, label: 'Tableau de bord', path: '/admin/dashboard', color: 'text-brand-500' },
     { icon: Building2, label: 'Biens immobiliers', path: '/admin/properties', color: 'text-blue-500' },
     { icon: Users, label: 'Utilisateurs', path: '/admin/users', color: 'text-green-500' },
@@ -38,21 +49,20 @@ const Sidebar = ({ userRole }) => {
   const menuItems = userRole === 'admin' ? adminMenuItems : ownerMenuItems;
   
   return (
-    <aside className="fixed left-0 top-0 w-70 h-full bg-white border-r border-border flex flex-col">
+    <aside className="fixed left-0 top-0 w-64 h-full bg-white border-r border-border flex flex-col z-30 shadow-sm">
       {/* Logo Section */}
       <div className="p-6 border-b border-border">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl flex items-center justify-center shadow-lg shadow-brand-500/30">
-            <span className="text-white font-bold text-xl">I</span>
-          </div>
+          <img src={logoAmeto} alt="Amétô" className="w-10 h-10 object-contain" />
           <div>
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-brand-500 bg-clip-text text-transparent">
-              ImmoTech
+              Amétô
             </span>
             <p className="text-xs text-secondary">Gestion immobilière</p>
           </div>
         </div>
       </div>
+
       
       {/* Navigation Menu - prend tout l'espace disponible */}
       <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
@@ -88,16 +98,21 @@ const Sidebar = ({ userRole }) => {
           <HelpCircle size={20} />
           <span className="font-medium">Aide & Support</span>
         </button>
-        <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-secondary hover:bg-red-50 hover:text-error transition-all duration-300">
+        <button 
+          onClick={handleLogout}
+          className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-secondary hover:bg-red-50 hover:text-error transition-all duration-300"
+        >
           <LogOut size={20} />
           <span className="font-medium">Déconnexion</span>
         </button>
+
         
         {/* Version Info */}
         <div className="pt-4 text-center border-t border-border mt-2">
           <p className="text-xs text-secondary">Version 1.0.0</p>
-          <p className="text-xs text-secondary mt-1">© 2026 ImmoTech Togo</p>
+          <p className="text-xs text-secondary mt-1">© 2026 Amétô Togo</p>
         </div>
+
       </div>
     </aside>
   );

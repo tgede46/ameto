@@ -20,11 +20,15 @@ export default function Header() {
   // Glassmorphism dynamic background based on scroll
   const isHome = location.pathname === '/';
   // Liquid glass header: slightly see-through white at top, blurry white on scroll
+  // On utilise une valeur stable pour l'output range pour éviter les crashs de framer-motion
   const headerBg = useTransform(
     scrollY,
     [0, 80],
-    isHome ? ['rgba(255,255,255,0)', 'rgba(255,255,255,0.7)'] : ['rgba(255,255,255,0.7)', 'rgba(255,255,255,0.7)']
+    ['rgba(255,255,255,0)', 'rgba(255,255,255,0.8)']
   );
+
+  // Pour les pages autres que Home, on force l'opacité ou on utilise un style différent
+  const finalHeaderBg = isHome ? headerBg : 'rgba(255,255,255,0.8)';
   const headerShadow = useTransform(
     scrollY,
     [0, 80],
@@ -208,7 +212,7 @@ export default function Header() {
       {/* ======= HEADER (Sticky Liquid Glass) ======= */}
       <motion.header
         style={{
-          backgroundColor: headerBg,
+          backgroundColor: finalHeaderBg,
           boxShadow: headerShadow,
           backdropFilter: backdropBlur,
           WebkitBackdropFilter: backdropBlur,
@@ -298,7 +302,7 @@ export default function Header() {
                     style={{ transformStyle: 'preserve-3d' }}
                     className="absolute right-0 top-full mt-4 w-[280px] bg-white/70 backdrop-blur-[24px] rounded-[24px] border border-white/60 shadow-[0_20px_40px_rgba(0,0,0,0.1)] py-3 z-[100] overflow-hidden"
                   >
-                    {!isLoggedIn ? (
+                    {!isLoggedIn || !user ? (
                       <div className="py-2 border-b border-gray-100/50 mb-2">
                         <Link to="/register" onClick={() => setIsMenuOpen(false)} className="block px-6 py-3 text-[15px] font-black text-gray-900 hover:bg-white/60 transition-colors">
                           S'inscrire

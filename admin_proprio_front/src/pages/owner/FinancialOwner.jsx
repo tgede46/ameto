@@ -1,203 +1,253 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchPayments } from '../../store/slices/financialSlice';
+import { fetchProperties } from '../../store/slices/propertySlice';
 import Card, { CardBody, CardHeader } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import { DollarSign, TrendingUp, Download, Calendar, ChevronDown, FileText } from 'lucide-react';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { DollarSign, TrendingUp, Download, Calendar, FileText, CheckCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 const FinancialOwner = () => {
+  const dispatch = useDispatch();
+  const { payments, loading: finLoading } = useSelector(state => state.financial);
+  const { properties, stats, loading: propLoading } = useSelector(state => state.properties);
   const [selectedYear, setSelectedYear] = useState('2026');
   const [selectedProperty, setSelectedProperty] = useState('all');
+
+  useEffect(() => {
+    dispatch(fetchPayments());
+    dispatch(fetchProperties('owner'));
+  }, [dispatch]);
   
-  const yearlyRevenue = {
-    '2026': [
-      { month: 'Janvier', revenue: 1350000, expenses: 150000, net: 1200000 },
-      { month: 'Février', revenue: 1350000, expenses: 200000, net: 1150000 },
-      { month: 'Mars', revenue: 1350000, expenses: 100000, net: 1250000 },
-    ]
-  };
-  
-  const properties = [
-    { id: 1, name: 'T2 Tokoin', monthlyRent: 150000, yield: 8.5, expenses: 15000 },
-    { id: 2, name: 'Studio Adidogomé', monthlyRent: 85000, yield: 7.2, expenses: 10000 },
-    { id: 3, name: 'Villa Lomé', monthlyRent: 450000, yield: 6.8, expenses: 45000 },
-  ];
-  
-  const totalRevenue = yearlyRevenue[selectedYear].reduce((sum, m) => sum + m.revenue, 0);
-  const totalExpenses = yearlyRevenue[selectedYear].reduce((sum, m) => sum + m.expenses, 0);
-  const totalNet = yearlyRevenue[selectedYear].reduce((sum, m) => sum + m.net, 0);
-  
+  const filteredPayments = payments?.filter(p => 
+    (selectedProperty === 'all' || p.bail_details?.bien === parseInt(selectedProperty)) &&
+    (new Date(p.date_paiement).getFullYear().toString() === selectedYear)
+  ) || [];
+
+  const totalRevenue = filteredPayments.reduce((sum, p) => p.statut?.toUpperCase() === 'VALIDE' ? sum + parseFloat(p.montant) : sum, 0);
+  const commission = totalRevenue * 0.1;
+  const netRevenue = totalRevenue - commission;
+
+  if ((finLoading || propLoading) && payments.length === 0) return <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>;
+
+  const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-12">
       {/* Header */}
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-primary">Rentabilité et Finances</h1>
-          <p className="text-secondary mt-2">Suivez vos revenus et optimisez votre rentabilité</p>
+          <h1 className="text-3xl font-extrabold text-gray-900">Comptabilité & Rentabilité</h1>
+          <p className="text-gray-500 mt-2">Gérez vos revenus fonciers et suivez la performance de votre patrimoine</p>
         </div>
         <div className="flex space-x-3">
-          <Button variant="outline">
+          <Button variant="outline" className="rounded-xl shadow-sm border-gray-200">
             <Download size={20} className="mr-2" />
-            Exporter Excel
+            Exporter CSV
           </Button>
-          <Button variant="primary">
+          <Button variant="primary" className="rounded-xl shadow-lg shadow-brand-500/20">
             <FileText size={20} className="mr-2" />
-            Rapport fiscal
+            Rapport DGI Togo
           </Button>
         </div>
       </div>
       
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardBody>
-            <div className="flex items-center justify-between mb-3">
-              <DollarSign size={24} className="text-brand-500" />
-              <Badge variant="success">+15%</Badge>
+        <Card className="border-0 shadow-sm hover:shadow-md transition-all">
+          <CardBody className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-green-50 text-green-600 rounded-2xl">
+                <DollarSign size={24} />
+              </div>
+              <div className="flex items-center text-green-600 font-bold text-sm bg-green-50 px-2 py-1 rounded-lg">
+                <ArrowUpRight size={14} className="mr-1" />
+                +12%
+              </div>
             </div>
-            <p className="text-secondary text-sm">Revenus totaux</p>
-            <p className="text-2xl font-bold text-primary">{totalRevenue.toLocaleString()} CFA</p>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Revenus bruts (annuel)</p>
+            <p className="text-3xl font-extrabold text-gray-900">{totalRevenue.toLocaleString()} <span className="text-sm font-normal text-gray-400">CFA</span></p>
           </CardBody>
         </Card>
-        <Card>
-          <CardBody>
-            <div className="flex items-center justify-between mb-3">
-              <TrendingUp size={24} className="text-warning" />
-              <Badge variant="warning">-5%</Badge>
+
+        <Card className="border-0 shadow-sm hover:shadow-md transition-all">
+          <CardBody className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-brand-50 text-brand-500 rounded-2xl">
+                <TrendingUp size={24} />
+              </div>
+              <div className="text-gray-400 font-bold text-sm bg-gray-50 px-2 py-1 rounded-lg">
+                10% fixe
+              </div>
             </div>
-            <p className="text-secondary text-sm">Charges totales</p>
-            <p className="text-2xl font-bold text-primary">{totalExpenses.toLocaleString()} CFA</p>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Commission Agence</p>
+            <p className="text-3xl font-extrabold text-gray-900">{commission.toLocaleString()} <span className="text-sm font-normal text-gray-400">CFA</span></p>
           </CardBody>
         </Card>
-        <Card>
-          <CardBody>
-            <div className="flex items-center justify-between mb-3">
-              <DollarSign size={24} className="text-success" />
-              <Badge variant="success">+12%</Badge>
+
+        <Card className="border-0 shadow-sm hover:shadow-md transition-all">
+          <CardBody className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+                <CheckCircle size={24} />
+              </div>
+              <div className="flex items-center text-blue-600 font-bold text-sm bg-blue-50 px-2 py-1 rounded-lg">
+                Net d'impôts
+              </div>
             </div>
-            <p className="text-secondary text-sm">Bénéfice net</p>
-            <p className="text-2xl font-bold text-primary">{totalNet.toLocaleString()} CFA</p>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Revenu net propriétaire</p>
+            <p className="text-3xl font-extrabold text-gray-900">{netRevenue.toLocaleString()} <span className="text-sm font-normal text-gray-400">CFA</span></p>
           </CardBody>
         </Card>
       </div>
       
       {/* Filters */}
-      <div className="flex gap-4">
-        <select 
-          className="input-field w-auto"
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
-        >
-          <option value="2026">2026</option>
-          <option value="2025">2025</option>
-          <option value="2024">2024</option>
-        </select>
-        
-        <select 
-          className="input-field w-auto"
-          value={selectedProperty}
-          onChange={(e) => setSelectedProperty(e.target.value)}
-        >
-          <option value="all">Tous les biens</option>
-          {properties.map(p => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
-      </div>
-      
-      {/* Monthly Revenue Table */}
-      <Card>
-        <CardHeader>
-          <h3 className="text-lg font-bold">Relevé mensuel des revenus</h3>
-        </CardHeader>
-        <CardBody>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b border-border">
-                <tr>
-                  <th className="text-left p-4 font-semibold text-secondary">Mois</th>
-                  <th className="text-right p-4 font-semibold text-secondary">Revenus</th>
-                  <th className="text-right p-4 font-semibold text-secondary">Charges</th>
-                  <th className="text-right p-4 font-semibold text-secondary">Bénéfice net</th>
-                  <th className="text-right p-4 font-semibold text-secondary">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {yearlyRevenue[selectedYear].map((month, index) => (
-                  <tr key={index} className="border-b border-border hover:bg-gray-50 transition-colors">
-                    <td className="p-4 font-medium">{month.month}</td>
-                    <td className="p-4 text-right text-success font-medium">
-                      +{month.revenue.toLocaleString()} CFA
-                    </td>
-                    <td className="p-4 text-right text-error">
-                      -{month.expenses.toLocaleString()} CFA
-                    </td>
-                    <td className="p-4 text-right font-bold">
-                      {month.net.toLocaleString()} CFA
-                    </td>
-                    <td className="p-4 text-right">
-                      <Button variant="outline" size="sm">
-                        <Download size={16} />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <Card className="border-0 shadow-sm">
+        <CardBody className="p-4 flex flex-wrap gap-4">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-bold text-gray-700 uppercase tracking-wider">Année :</span>
+            <select 
+              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500 font-bold text-gray-900"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+            >
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+            </select>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-bold text-gray-700 uppercase tracking-wider">Bien :</span>
+            <select 
+              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500 font-bold text-gray-900"
+              value={selectedProperty}
+              onChange={(e) => setSelectedProperty(e.target.value)}
+            >
+              <option value="all">Tous les biens</option>
+              {properties?.map(p => (
+                <option key={p.id} value={p.id}>{p.adresse}</option>
+              ))}
+            </select>
           </div>
         </CardBody>
       </Card>
       
-      {/* Properties Performance */}
-      <Card>
-        <CardHeader>
-          <h3 className="text-lg font-bold">Performance par bien</h3>
-        </CardHeader>
-        <CardBody>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {properties.map((property) => (
-              <div key={property.id} className="p-4 border border-border rounded-xl hover:shadow-md transition-shadow">
-                <h4 className="font-bold text-primary mb-3">{property.name}</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-secondary">Loyer mensuel:</span>
-                    <span className="font-medium">{property.monthlyRent.toLocaleString()} CFA</span>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Monthly Revenue Table */}
+        <Card className="lg:col-span-2 border-0 shadow-sm overflow-hidden">
+          <CardHeader className="p-6 bg-gray-50/50 border-b border-gray-100">
+            <h3 className="text-lg font-bold text-gray-900">Historique des paiements ({selectedYear})</h3>
+          </CardHeader>
+          <CardBody className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-50">
+                    <th className="text-left p-4 font-bold text-gray-400 uppercase tracking-widest text-[10px]">Date</th>
+                    <th className="text-left p-4 font-bold text-gray-400 uppercase tracking-widest text-[10px]">Référence</th>
+                    <th className="text-right p-4 font-bold text-gray-400 uppercase tracking-widest text-[10px]">Montant</th>
+                    <th className="text-center p-4 font-bold text-gray-400 uppercase tracking-widest text-[10px]">Statut</th>
+                    <th className="text-right p-4 font-bold text-gray-400 uppercase tracking-widest text-[10px]">Quittance</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filteredPayments.map((payment) => (
+                    <tr key={payment.id} className="hover:bg-gray-50/30 transition-colors">
+                      <td className="p-4 text-sm font-medium text-gray-900">
+                        {new Date(payment.date_paiement).toLocaleDateString()}
+                      </td>
+                      <td className="p-4 text-sm text-gray-500 font-mono">
+                        {payment.reference}
+                      </td>
+                      <td className="p-4 text-right">
+                        <span className="font-extrabold text-gray-900">{parseFloat(payment.montant).toLocaleString()}</span>
+                        <span className="text-[10px] text-gray-400 ml-1">CFA</span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <Badge variant={payment.statut?.toUpperCase() === 'VALIDE' ? 'success' : 'warning'} className="uppercase text-[10px]">
+                          {payment.statut}
+                        </Badge>
+                      </td>
+                      <td className="p-4 text-right">
+                        {payment.statut?.toUpperCase() === 'VALIDE' && (
+                          <button className="p-2 text-brand-500 hover:bg-brand-50 rounded-lg transition-all">
+                            <Download size={16} />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredPayments.length === 0 && (
+                    <tr>
+                      <td colSpan="5" className="p-8 text-center text-gray-400 italic">
+                        Aucun paiement enregistré pour cette période.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardBody>
+        </Card>
+        
+        {/* Tax & Stats */}
+        <div className="space-y-8">
+          <Card className="border-0 shadow-sm bg-gray-900 text-white overflow-hidden">
+            <CardBody className="p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-brand-500 rounded-2xl flex items-center justify-center">
+                  <TrendingUp size={20} className="text-white" />
+                </div>
+                <h3 className="text-xl font-bold">Performance</h3>
+              </div>
+              
+              <div className="space-y-6">
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-400 text-xs font-bold uppercase tracking-widest">Taux d'occupation</span>
+                    <span className="font-bold">{stats?.taux_occupation || 0}%</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-secondary">Charges:</span>
-                    <span className="font-medium">{property.expenses.toLocaleString()} CFA</span>
+                  <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                    <div className="bg-brand-500 h-full rounded-full transition-all duration-1000" style={{ width: `${stats?.taux_occupation || 0}%` }} />
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-secondary">Rendement:</span>
-                    <Badge variant="success">{property.yield}%</Badge>
+                </div>
+                
+                <div className="pt-4 border-t border-white/10 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-xs font-bold uppercase tracking-widest">Rendement Net</span>
+                    <span className="text-xl font-extrabold text-brand-500">{stats?.rendement_net || 7.5}%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-xs font-bold uppercase tracking-widest">Biens Loués</span>
+                    <span className="font-bold">{stats?.biens_loues || 0} / {stats?.total_biens || 0}</span>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </CardBody>
-      </Card>
-      
-      {/* Tax Simulation */}
-      <Card className="border-2 border-brand-500/20 bg-brand-50/30">
-        <CardBody>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h3 className="text-lg font-bold text-primary">Simulation fiscale Togo</h3>
-              <p className="text-secondary mt-1">
-                Estimation des impôts sur les revenus fonciers 2026
+            </CardBody>
+          </Card>
+
+          <Card className="border-0 shadow-sm bg-brand-50/50 border border-brand-500/10">
+            <CardBody className="p-8">
+              <div className="flex items-center gap-3 mb-4 text-brand-500">
+                <FileText size={20} />
+                <h3 className="text-lg font-bold">Estimation Fiscale</h3>
+              </div>
+              <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+                Estimation basée sur les revenus fonciers {selectedYear} selon les tranches de la DGI Togo (environ 15%).
               </p>
-              <p className="text-2xl font-bold text-brand-500 mt-2">
-                ~{(totalNet * 0.2).toLocaleString()} CFA
-              </p>
-              <p className="text-sm text-secondary">Estimation 20% de tranche fiscale</p>
-            </div>
-            <Button variant="primary">
-              <Calendar size={20} className="mr-2" />
-              Exporter pour DGI
-            </Button>
-          </div>
-        </CardBody>
-      </Card>
+              <div className="bg-white p-4 rounded-2xl shadow-sm mb-6 border border-brand-500/5">
+                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">Impôt estimé</p>
+                <p className="text-2xl font-extrabold text-gray-900">{(netRevenue * 0.15).toLocaleString()} <span className="text-xs font-normal">CFA</span></p>
+              </div>
+              <Button variant="primary" className="w-full py-3 rounded-xl font-bold">
+                Détails de simulation
+              </Button>
+            </CardBody>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };

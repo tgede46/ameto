@@ -1,22 +1,36 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProperties } from '../../store/slices/propertySlice';
+import { fetchUsers } from '../../store/slices/userSlice';
 import Card, { CardBody, CardHeader } from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { BarChart3, TrendingUp, DollarSign, Users, Home, Calendar } from 'lucide-react';
 
 const AdminDashboard = () => {
+  const dispatch = useDispatch();
+  const { properties, loading: propsLoading } = useSelector(state => state.properties);
+  const { users, loading: usersLoading } = useSelector(state => state.users);
+
+  useEffect(() => {
+    dispatch(fetchProperties('admin'));
+    dispatch(fetchUsers());
+  }, [dispatch]);
+
   const stats = [
-    { icon: Home, label: 'Total biens', value: '156', change: '+12%', color: 'brand' },
-    { icon: Users, label: 'Utilisateurs', value: '2,345', change: '+8%', color: 'brand' },
-    { icon: DollarSign, label: 'CA mensuel', value: '45.2M CFA', change: '+15%', color: 'brand' },
-    { icon: TrendingUp, label: 'Rendement moyen', value: '7.2%', change: '+0.5%', color: 'brand' },
+    { icon: Home, label: 'Total biens', value: properties?.length || 0, change: '+12%', color: 'brand' },
+    { icon: Users, label: 'Utilisateurs', value: users?.length || 0, change: '+8%', color: 'brand' },
+    { icon: DollarSign, label: 'CA estimé', value: `${((properties?.reduce((acc, p) => acc + (p.loyer_hc || 0), 0) || 0) / 1000000).toFixed(1)}M CFA`, change: '+15%', color: 'brand' },
+    { icon: TrendingUp, label: 'Biens loués', value: properties?.filter(p => p.statut === 'LOUE').length || 0, change: '+0.5%', color: 'brand' },
   ];
   
   const recentActivities = [
-    { id: 1, type: 'property', message: 'Nouveau bien ajouté - T2 Tokoin', time: 'il y a 5 min', status: 'success' },
-    { id: 2, type: 'payment', message: 'Paiement loyer - 150k CFA', time: 'il y a 1h', status: 'success' },
-    { id: 3, type: 'user', message: 'Nouvel utilisateur inscrit', time: 'il y a 2h', status: 'info' },
-    { id: 4, type: 'alert', message: 'Fin de bail - Appart Lomé', time: 'il y a 3h', status: 'warning' },
+    { id: 1, type: 'property', message: 'Dernier bien : ' + (properties[0]?.adresse || 'Aucun'), time: 'Récent', status: 'success' },
+    { id: 2, type: 'user', message: 'Dernier inscrit : ' + (users[0]?.prenom ? `${users[0].prenom} ${users[0].nom || ''}` : 'Aucun'), time: 'Récent', status: 'info' },
   ];
+
+  if (propsLoading || usersLoading) return <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>;
+
   
   return (
     <div className="space-y-6 animate-fade-in">

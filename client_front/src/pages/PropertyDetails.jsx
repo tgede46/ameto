@@ -224,7 +224,7 @@ function CandidatureModal({ property, onClose }) {
               {error && (
                 <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-bold flex items-center gap-3 mb-6">
                   <AlertCircle size={18} />
-                  {error}
+                  {typeof error === 'object' ? (error.detail || error.message || JSON.stringify(error)) : error}
                 </div>
               )}
 

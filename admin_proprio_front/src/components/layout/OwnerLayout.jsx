@@ -1,11 +1,15 @@
-﻿import React from 'react';
-import { Outlet } from 'react-router-dom';
+import React from 'react';
+import { Outlet, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
 const OwnerLayout = () => {
-  const userName = "M. Koffi";
+  const { user } = useSelector((state) => state.auth);
+
+  const userName = user?.prenom ? `${user.prenom} ${user.nom || ''}` : "Propriétaire";
   const userRole = "owner";
+
   
   return (
     <div className="flex min-h-screen bg-gray-50">

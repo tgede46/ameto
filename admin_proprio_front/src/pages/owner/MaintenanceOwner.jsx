@@ -1,384 +1,121 @@
-import React, { useState } from 'react';
-import Card, { CardBody, CardHeader } from '../../components/common/Card';
-import Button from '../../components/common/Button';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchMaintenanceRequests } from '../../store/slices/maintenanceSlice';
+import Card, { CardBody } from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
-import Modal from '../../components/common/Modal';
-import { Wrench, CheckCircle, Clock, AlertCircle, Upload, Plus, X, Eye } from 'lucide-react';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { Wrench, Clock, CheckCircle, AlertTriangle, MessageSquare, MapPin } from 'lucide-react';
 
 const MaintenanceOwner = () => {
-  const [showModal, setShowModal] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  
-  const [requests, setRequests] = useState([
-    {
-      id: 1,
-      property: 'T2 Tokoin',
-      tenant: 'Mme Afi',
-      issue: 'Fuite d\'eau dans la douche',
-      description: 'Fuite importante, nécessite intervention rapide. L\'eau s\'écoule depuis la douche et commence à inonder la salle de bain.',
-      priority: 'urgent',
-      status: 'pending',
-      date: '05/03/2026',
-      estimatedCost: 50000,
-      images: [],
-      beforeImages: ['/api/placeholder/400/300'],
-    },
-    {
-      id: 2,
-      property: 'Villa Lomé',
-      tenant: 'Mme Sarah',
-      issue: 'Climatisation en panne',
-      description: 'Climatisation du salon ne fonctionne plus. Elle ne refroidit pas malgré plusieurs essais.',
-      priority: 'normal',
-      status: 'in_progress',
-      date: '03/03/2026',
-      estimatedCost: 75000,
-      images: ['/api/placeholder/400/300'],
-    },
-    {
-      id: 3,
-      property: 'Studio Adidogomé',
-      tenant: 'M. Jean',
-      issue: 'Problème électrique',
-      description: 'Prises ne fonctionnent pas dans la chambre. Impossible d\'utiliser les appareils électriques.',
-      priority: 'normal',
-      status: 'approved',
-      date: '28/02/2026',
-      estimatedCost: 35000,
-      images: [],
-    },
-  ]);
-  
-  const getStatusConfig = (status) => {
-    switch(status) {
-      case 'pending':
-        return { label: 'En attente', icon: Clock, variant: 'warning' };
-      case 'in_progress':
-        return { label: 'En cours', icon: Wrench, variant: 'info' };
-      case 'approved':
-        return { label: 'Approuvé', icon: CheckCircle, variant: 'success' };
-      case 'completed':
-        return { label: 'Terminé', icon: CheckCircle, variant: 'success' };
-      default:
-        return { label: 'Inconnu', icon: AlertCircle, variant: 'default' };
+  const dispatch = useDispatch();
+  const { requests, loading, error } = useSelector(state => state.maintenance);
+
+  useEffect(() => {
+    dispatch(fetchMaintenanceRequests());
+  }, [dispatch]);
+
+  const getStatusBadge = (status) => {
+    switch(status?.toUpperCase()) {
+      case 'EN_ATTENTE': return <Badge variant="warning">En attente</Badge>;
+      case 'APPROUVE': return <Badge variant="info">Approuvé</Badge>;
+      case 'EN_COURS': return <Badge variant="info">En cours</Badge>;
+      case 'TERMINE': return <Badge variant="success">Terminé</Badge>;
+      case 'REFUSE': return <Badge variant="danger">Refusé</Badge>;
+      default: return <Badge>{status}</Badge>;
     }
   };
-  
-  const getPriorityConfig = (priority) => {
-    switch(priority) {
-      case 'urgent':
-        return { label: 'Urgent', variant: 'error' };
-      case 'normal':
-        return { label: 'Normal', variant: 'warning' };
-      default:
-        return { label: 'Normal', variant: 'default' };
+
+  const getPriorityIcon = (priority) => {
+    switch(priority?.toUpperCase()) {
+      case 'URGENT': return <AlertTriangle className="text-red-500" size={18} />;
+      case 'HAUTE': return <AlertTriangle className="text-orange-500" size={18} />;
+      default: return <Clock className="text-blue-500" size={18} />;
     }
   };
-  
-  const handleApprove = (request) => {
-    setSelectedRequest(request);
-    setShowModal(true);
-  };
-  
-  const confirmApprove = () => {
-    setRequests(requests.map(req => 
-      req.id === selectedRequest.id 
-        ? { ...req, status: 'approved' }
-        : req
-    ));
-    setShowModal(false);
-    setSelectedRequest(null);
-  };
-  
-  const pendingRequests = requests.filter(r => r.status === 'pending');
-  const inProgressRequests = requests.filter(r => r.status === 'in_progress');
-  const completedRequests = requests.filter(r => r.status === 'approved' || r.status === 'completed');
-  
-  const RequestCard = ({ request }) => {
-    const statusConfig = getStatusConfig(request.status);
-    const priorityConfig = getPriorityConfig(request.priority);
-    const StatusIcon = statusConfig.icon;
-    
-    return (
-      <Card className="hover:shadow-lg transition-all duration-300">
-        <CardBody>
-          <div className="flex justify-between items-start mb-3">
-            <div>
-              <h3 className="text-lg font-bold text-primary">{request.issue}</h3>
-              <p className="text-secondary text-sm mt-1">{request.property}</p>
-            </div>
-            <div className="flex space-x-2">
-              <Badge variant={priorityConfig.variant}>
-                {priorityConfig.label}
-              </Badge>
-              <Badge variant={statusConfig.variant}>
-                <StatusIcon size={12} className="inline mr-1" />
-                {statusConfig.label}
-              </Badge>
-            </div>
-          </div>
-          
-          <p className="text-secondary text-sm mb-3">{request.description.substring(0, 100)}...</p>
-          
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <p className="text-xs text-secondary">Locataire</p>
-              <p className="font-medium text-primary">{request.tenant}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-secondary">Date</p>
-              <p className="font-medium text-primary">{request.date}</p>
-            </div>
-          </div>
-          
-          {request.estimatedCost && (
-            <div className="mb-4 p-3 bg-brand-50 rounded-xl">
-              <p className="text-sm">
-                <span className="font-medium">Coût estimé:</span>{' '}
-                <span className="text-brand-500 font-bold">{request.estimatedCost.toLocaleString()} CFA</span>
-              </p>
-            </div>
-          )}
-          
-          <div className="flex space-x-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex-1"
-              onClick={() => {
-                setSelectedRequest(request);
-                setShowDetailsModal(true);
-              }}
-            >
-              <Eye size={16} className="mr-2" />
-              Détails
-            </Button>
-            
-            {request.status === 'pending' && (
-              <Button 
-                variant="primary" 
-                size="sm" 
-                className="flex-1"
-                onClick={() => handleApprove(request)}
-              >
-                <CheckCircle size={16} className="mr-2" />
-                Approuver
-              </Button>
-            )}
-            
-            {request.status === 'in_progress' && (
-              <Button 
-                variant="primary" 
-                size="sm" 
-                className="flex-1"
-              >
-                Suivre
-              </Button>
-            )}
-          </div>
-        </CardBody>
-      </Card>
-    );
-  };
-  
+
+  if (loading && requests.length === 0) return <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>;
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex justify-between items-center flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-primary">Gestion de la maintenance</h1>
-          <p className="text-secondary mt-2">Suivez et gérez les demandes de réparation</p>
-        </div>
-        <Button variant="primary">
-          <Plus size={20} className="mr-2" />
-          Nouvelle demande
-        </Button>
+    <div className="space-y-6 animate-fade-in pb-12">
+      <div>
+        <h1 className="text-3xl font-extrabold text-gray-900">Suivi de maintenance</h1>
+        <p className="text-gray-500 mt-2">Gérez les demandes de réparation de vos locataires</p>
       </div>
-      
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-l-4 border-l-warning">
-          <CardBody className="flex items-center justify-between">
-            <div>
-              <p className="text-secondary text-sm">En attente</p>
-              <p className="text-2xl font-bold text-warning">{pendingRequests.length}</p>
-            </div>
-            <Clock size={32} className="text-warning" />
-          </CardBody>
-        </Card>
-        <Card className="border-l-4 border-l-brand-500">
-          <CardBody className="flex items-center justify-between">
-            <div>
-              <p className="text-secondary text-sm">En cours</p>
-              <p className="text-2xl font-bold text-brand-500">{inProgressRequests.length}</p>
-            </div>
-            <Wrench size={32} className="text-brand-500" />
-          </CardBody>
-        </Card>
-        <Card className="border-l-4 border-l-success">
-          <CardBody className="flex items-center justify-between">
-            <div>
-              <p className="text-secondary text-sm">Terminés</p>
-              <p className="text-2xl font-bold text-success">{completedRequests.length}</p>
-            </div>
-            <CheckCircle size={32} className="text-success" />
-          </CardBody>
-        </Card>
-      </div>
-      
-      {/* En attente */}
-      {pendingRequests.length > 0 && (
-        <div>
-          <h2 className="text-xl font-bold text-primary mb-4 flex items-center">
-            <Clock size={20} className="mr-2 text-warning" />
-            Demandes en attente
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {pendingRequests.map(request => (
-              <RequestCard key={request.id} request={request} />
-            ))}
-          </div>
-        </div>
-      )}
-      
-      {/* En cours */}
-      {inProgressRequests.length > 0 && (
-        <div>
-          <h2 className="text-xl font-bold text-primary mb-4 flex items-center">
-            <Wrench size={20} className="mr-2 text-brand-500" />
-            Travaux en cours
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {inProgressRequests.map(request => (
-              <RequestCard key={request.id} request={request} />
-            ))}
-          </div>
-        </div>
-      )}
-      
-      {/* Historique */}
-      {completedRequests.length > 0 && (
-        <div>
-          <h2 className="text-xl font-bold text-primary mb-4 flex items-center">
-            <CheckCircle size={20} className="mr-2 text-success" />
-            Historique des interventions
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {completedRequests.map(request => (
-              <RequestCard key={request.id} request={request} />
-            ))}
-          </div>
-        </div>
-      )}
-      
-      {/* Modal d'approbation */}
-      <Modal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title="Approuver la demande de maintenance"
-      >
-        {selectedRequest && (
-          <div className="space-y-4">
-            <div className="p-4 bg-brand-50 rounded-xl">
-              <p className="font-medium">{selectedRequest.property}</p>
-              <p className="text-secondary text-sm mt-1">{selectedRequest.issue}</p>
-            </div>
-            
-            <div className="p-4 bg-yellow-50 rounded-xl">
-              <p className="font-medium text-warning">Coût estimé: {selectedRequest.estimatedCost.toLocaleString()} CFA</p>
-              <p className="text-sm text-secondary mt-1">
-                Ce montant sera déduit des prochains loyers ou vous pourrez rembourser le locataire.
-              </p>
-            </div>
-            
-            <div className="flex space-x-3">
-              <Button variant="outline" className="flex-1" onClick={() => setShowModal(false)}>
-                Annuler
-              </Button>
-              <Button variant="primary" className="flex-1" onClick={confirmApprove}>
-                Approuver
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
-      
-      {/* Modal Détails */}
-      <Modal
-        isOpen={showDetailsModal}
-        onClose={() => setShowDetailsModal(false)}
-        title="Détails de la demande"
-        size="lg"
-      >
-        {selectedRequest && (
-          <div className="space-y-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-xl font-bold text-primary">{selectedRequest.issue}</h3>
-                <p className="text-secondary">{selectedRequest.property}</p>
-              </div>
-              <Badge variant={getPriorityConfig(selectedRequest.priority).variant}>
-                {getPriorityConfig(selectedRequest.priority).label}
-              </Badge>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl">
-              <div>
-                <p className="text-xs text-secondary">Locataire</p>
-                <p className="font-medium">{selectedRequest.tenant}</p>
-              </div>
-              <div>
-                <p className="text-xs text-secondary">Date de signalement</p>
-                <p className="font-medium">{selectedRequest.date}</p>
-              </div>
-            </div>
-            
-            <div>
-              <p className="font-medium mb-2">Description</p>
-              <p className="text-secondary">{selectedRequest.description}</p>
-            </div>
-            
-            {selectedRequest.images && selectedRequest.images.length > 0 && (
-              <div>
-                <p className="font-medium mb-2">Photos</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {selectedRequest.images.map((img, idx) => (
-                    <img key={idx} src={img} alt={`Photo ${idx + 1}`} className="rounded-xl" />
-                  ))}
+
+      <div className="grid grid-cols-1 gap-6">
+        {requests.map(request => (
+          <Card key={request.id} className="border-0 shadow-sm hover:shadow-md transition-all overflow-hidden bg-white group">
+            <CardBody className="p-0">
+              <div className="flex flex-col md:flex-row">
+                <div className="p-6 flex-1">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-3 bg-brand-50 rounded-2xl text-brand-500">
+                        <Wrench size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900">{request.titre}</h3>
+                        <div className="flex items-center text-sm text-gray-500 mt-1">
+                          <MapPin size={14} className="mr-1 text-brand-500" />
+                          {request.bien_adresse}
+                        </div>
+                      </div>
+                    </div>
+                    {getStatusBadge(request.statut)}
+                  </div>
+                  
+                  <p className="text-gray-600 mb-6 leading-relaxed">
+                    {request.description}
+                  </p>
+                  
+                  <div className="flex flex-wrap items-center gap-6 pt-6 border-t border-gray-50">
+                    <div className="flex items-center space-x-2">
+                      {getPriorityIcon(request.priorite)}
+                      <span className="text-sm font-bold text-gray-700 uppercase tracking-wider">Priorité {request.priorite}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Clock size={18} className="text-gray-400" />
+                      <span className="text-sm text-gray-500">Signalé le {new Date(request.date_signalement).toLocaleDateString()}</span>
+                    </div>
+                    {request.cout_estime && (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-bold text-brand-500">Coût estimé: {parseFloat(request.cout_estime).toLocaleString()} CFA</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="bg-gray-50 p-6 md:w-64 flex flex-col justify-center space-y-3 border-t md:border-t-0 md:border-l border-gray-100">
+                  <button className="w-full py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm">
+                    <MessageSquare size={18} />
+                    Discuter
+                  </button>
+                  {request.statut === 'EN_ATTENTE' && (
+                    <button className="w-full py-3 bg-brand-500 text-white rounded-xl font-bold hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20">
+                      Approuver
+                    </button>
+                  )}
+                  {request.statut === 'EN_COURS' && (
+                    <button className="w-full py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all shadow-lg shadow-green-500/20">
+                      Marquer terminé
+                    </button>
+                  )}
                 </div>
               </div>
-            )}
-            
-            <div className="pt-4 border-t border-border">
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Coût estimé</span>
-                <span className="text-xl font-bold text-brand-500">
-                  {selectedRequest.estimatedCost.toLocaleString()} CFA
-                </span>
-              </div>
+            </CardBody>
+          </Card>
+        ))}
+        
+        {requests.length === 0 && !loading && (
+          <div className="text-center py-20 bg-gray-50 rounded-[40px] border-2 border-dashed border-gray-200">
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <CheckCircle size={32} className="text-green-500" />
             </div>
-            
-            <div className="flex space-x-3 pt-4">
-              <Button variant="outline" className="flex-1" onClick={() => setShowDetailsModal(false)}>
-                Fermer
-              </Button>
-              {selectedRequest.status === 'pending' && (
-                <Button 
-                  variant="primary" 
-                  className="flex-1" 
-                  onClick={() => {
-                    setShowDetailsModal(false);
-                    handleApprove(selectedRequest);
-                  }}
-                >
-                  Approuver
-                </Button>
-              )}
-            </div>
+            <h3 className="text-xl font-bold text-gray-900">Tout est en ordre</h3>
+            <p className="text-gray-500 mt-1">Aucune demande de maintenance en attente.</p>
           </div>
         )}
-      </Modal>
+      </div>
     </div>
   );
 };

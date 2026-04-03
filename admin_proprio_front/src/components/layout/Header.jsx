@@ -1,8 +1,17 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Bell, User, LogOut, ChevronDown } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../store/slices/authSlice';
 
 const Header = ({ userRole, userName }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    window.location.href = '/';
+  };
+
   
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-border">
@@ -25,12 +34,16 @@ const Header = ({ userRole, userName }) => {
             </button>
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-border overflow-hidden">
-                <button className="w-full flex items-center space-x-2 px-4 py-3 text-left hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={handleLogout}
+                  className="w-full flex items-center space-x-2 px-4 py-3 text-left hover:bg-gray-50 transition-colors text-error"
+                >
                   <LogOut size={16} />
-                  <span>Deconnexion</span>
+                  <span>Déconnexion</span>
                 </button>
               </div>
             )}
+
           </div>
         </div>
       </div>

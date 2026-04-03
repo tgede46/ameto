@@ -1,7 +1,7 @@
 import Header from "../components/Header";
 import CategoryBar from "../components/CategoryBar";
 import { Link } from "react-router-dom";
-import { Star, Map, List, Heart, ChevronLeft, ChevronRight, TrendingUp, Building2, Shield, Headphones, ArrowRight, MapPin, Search, SlidersHorizontal, Loader2 } from "lucide-react";
+import { Star, Map, List, Heart, ChevronLeft, ChevronRight, TrendingUp, Building2, Shield, Headphones, ArrowRight, MapPin, Search, SlidersHorizontal, Loader2, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -31,7 +31,10 @@ function PropertyCard({ property, isFav, onToggleFav }) {
   const cardRef = useRef(null);
 
   const images = property.photos?.length > 0 
-    ? property.photos.map(p => `http://localhost:8000${p.image}`) 
+    ? property.photos.map(p => {
+        if (!p || !p.image) return "/outils/M1.png";
+        return p.image.startsWith('http') ? p.image : `http://localhost:8000${p.image}`;
+      }) 
     : ["/outils/M1.png"];
 
   const x = useMotionValue(0);
@@ -60,7 +63,10 @@ function PropertyCard({ property, isFav, onToggleFav }) {
   };
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('fr-FR').format(price) + ' CFA';
+    if (price === null || price === undefined) return '0 CFA';
+    const numericPrice = typeof price === 'string' ? parseFloat(price.replace(/[^0-9.]/g, '')) : price;
+    if (isNaN(numericPrice)) return '0 CFA';
+    return new Intl.NumberFormat('fr-FR').format(numericPrice) + ' CFA';
   };
 
   return (
@@ -187,35 +193,30 @@ export default function Home() {
   
   const dispatch = useDispatch();
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('fr-FR').format(price) + ' CFA';
+    if (price === null || price === undefined) return '0 CFA';
+    const numericPrice = typeof price === 'string' ? parseFloat(price.replace(/[^0-9.]/g, '')) : price;
+    if (isNaN(numericPrice)) return '0 CFA';
+    return new Intl.NumberFormat('fr-FR').format(numericPrice) + ' CFA';
   };
-
-  const properties = useSelector(state => state.properties.list) || [];
+  
+  const propertiesData = useSelector(state => state.properties.list);
   const loading = useSelector(state => state.properties.loading);
   const error = useSelector(state => state.properties.error);
 
-  const filtered = properties || [];
+  const allProperties = Array.isArray(propertiesData) ? propertiesData : (propertiesData?.results || []);
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-white">
-        <Header />
-        <div className="flex flex-col items-center justify-center py-20 px-6">
-          <div className="bg-red-50 text-red-600 p-6 rounded-[32px] border border-red-100 max-w-md text-center">
-            <AlertCircle size={48} className="mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Oups ! Une erreur est survenue</h2>
-            <p className="text-sm opacity-80 mb-6">{error}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="btn-primary w-full"
-            >
-              Réessayer
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const filtered = allProperties.filter(p => {
+    const matchesCategory = activeFilter === 'all' || 
+                           p.type_bien === activeFilter || 
+                           p.categorie?.libelle === activeFilter;
+    
+    const name = p.nom || p.titre || p.adresse || '';
+    const quartier = p.quartier || p.localisation || '';
+    
+    const matchesSearch = name.toLowerCase().includes(searchQuartier.toLowerCase()) || 
+                         quartier.toLowerCase().includes(searchQuartier.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   const stats = [
     {
@@ -252,6 +253,29 @@ export default function Home() {
     dispatch(fetchProperties(filters));
   }, [dispatch, activeFilter, searchQuartier, priceRange]);
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="flex flex-col items-center justify-center py-20 px-6">
+          <div className="bg-red-50 text-red-600 p-6 rounded-[32px] border border-red-100 max-w-md text-center">
+            <AlertCircle size={48} className="mx-auto mb-4" />
+            <h2 className="text-xl font-bold mb-2">Oups ! Une erreur est survenue</h2>
+            <p className="text-sm opacity-80 mb-6">
+              {typeof error === 'object' ? (error.detail || error.message || JSON.stringify(error)) : error}
+            </p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="btn-primary w-full"
+            >
+              Réessayer
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const toggleFav = (id) => {
     setFavorites(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
@@ -260,18 +284,16 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       <Header />
 
-      {/* ── Hero Video Section ── */}
-      <section className="relative w-full h-[65vh] md:h-[80vh] overflow-hidden">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src="/outils/video2.mp4" type="video/mp4" />
-        </video>
+      {/* ── Hero Section ── */}
+      <section className="relative w-full h-[65vh] md:h-[80vh] overflow-hidden bg-gray-900">
+        {/* On remplace la vidéo manquante par une image statique pour éviter les erreurs console */}
+        <img 
+          src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=2000" 
+          alt="Luxe immobilier" 
+          className="absolute inset-0 w-full h-full object-cover opacity-70"
+        />
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+
 
         <div className="absolute inset-0 flex items-center justify-center p-6">
           <motion.div
@@ -364,7 +386,7 @@ export default function Home() {
             >
               {filtered.map((property, index) => (
                 <motion.div
-                  key={property.id}
+                  key={`${property.id}-${index}`}
                   variants={{
                     hidden: { opacity: 0, y: 24 },
                     show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }
@@ -398,7 +420,7 @@ export default function Home() {
                   url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                 />
 
-                {filtered.map(property => {
+                {filtered.map((property, idx) => {
                   // Generate spread coordinates around Lomé for demo
                   const lat = 6.1366 + (Math.random() - 0.5) * 0.05;
                   const lng = 1.2222 + (Math.random() - 0.5) * 0.05;
@@ -411,7 +433,7 @@ export default function Home() {
                   });
 
                   return (
-                    <Marker key={property.id} position={[lat, lng]} icon={customIcon}>
+                    <Marker key={`${property.id}-${idx}`} position={[lat, lng]} icon={customIcon}>
                       <Popup className="premium-popup !p-0 !rounded-3xl overflow-hidden">
                         <Link to={`/property/${property.id}`} className="block w-64">
                           <img 
@@ -512,16 +534,13 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="relative bg-gray-900 rounded-[32px] overflow-hidden card-3d"
           >
-            {/* Background video */}
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
+            {/* Background Image Fallback */}
+            <img 
+              src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=2000" 
+              alt="Immobilier Togo" 
               className="absolute inset-0 w-full h-full object-cover opacity-60"
-            >
-              <source src="/outils/video1.mp4" type="video/mp4" />
-            </video>
+            />
+
             <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent" />
 
             <div className="relative z-10 p-14 md:p-20 max-w-2xl">

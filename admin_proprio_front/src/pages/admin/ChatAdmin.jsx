@@ -1,249 +1,166 @@
-﻿import React, { useState } from 'react';
-import Card, { CardBody, CardHeader } from '../../components/common/Card';
+import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchConversations, fetchConversation, sendMessage } from '../../store/slices/notificationSlice';
+import Card, { CardBody } from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import Badge from '../../components/common/Badge';
-import Modal from '../../components/common/Modal';
-import { 
-  Send, Phone, Video, MoreVertical, Smile, Paperclip, 
-  Search, Users, MessageSquare 
-} from 'lucide-react';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { Send, Search, User, MessageSquare, Phone, Info, MoreVertical } from 'lucide-react';
+import toast from 'react-hot-toast';
 
+// Re-using the same structure as ChatOwner but for Admin context
 const ChatAdmin = () => {
-  const [selectedChat, setSelectedChat] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [showNewChatModal, setShowNewChatModal] = useState(false);
+  const dispatch = useDispatch();
+  const { conversations, messages, loading, activeConversation } = useSelector(state => state.notification);
+  const { user } = useSelector(state => state.auth);
+  const [msgContent, setMsgContent] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const messagesEndRef = useRef(null);
 
-  const [chats, setChats] = useState([
-    { id: 1, name: 'M. Koffi', role: 'proprietaire', lastMessage: 'Bonjour, je voudrais ajouter un bien', time: '10:30', unread: 2, online: true, avatar: 'K' },
-    { id: 2, name: 'Mme Afi', role: 'locataire', lastMessage: "Problème de fuite d'eau", time: '09:15', unread: 1, online: false, avatar: 'A' },
-    { id: 3, name: 'M. Jean', role: 'locataire', lastMessage: 'Merci pour votre aide', time: 'Hier', unread: 0, online: false, avatar: 'J' },
-    { id: 4, name: 'Mme Sarah', role: 'proprietaire', lastMessage: 'Quand est la prochaine visite ?', time: 'Hier', unread: 0, online: true, avatar: 'S' },
-  ]);
+  useEffect(() => {
+    dispatch(fetchConversations());
+  }, [dispatch]);
 
-  const chatMessages = {
-    1: [
-      { id: 1, sender: 'user', text: 'Bonjour, je voudrais ajouter un nouveau bien', time: '10:30', isOwn: false },
-      { id: 2, sender: 'admin', text: 'Bonjour M. Koffi, je vous envoie le formulaire', time: '10:32', isOwn: true },
-      { id: 3, sender: 'user', text: 'Merci beaucoup', time: '10:33', isOwn: false },
-    ],
-    2: [
-      { id: 1, sender: 'user', text: "Bonjour, j'ai un problème de fuite d'eau", time: '09:15', isOwn: false },
-      { id: 2, sender: 'admin', text: 'Bonjour Mme Afi, je vais envoyer un plombier', time: '09:20', isOwn: true },
-    ],
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
+  const handleSelectConversation = (userId) => {
+    dispatch(fetchConversation(userId));
   };
 
-  const handleSelectChat = (chat) => {
-    setSelectedChat(chat);
-    setMessages(chatMessages[chat.id] || []);
-    setChats(chats.map(c => c.id === chat.id ? { ...c, unread: 0 } : c));
-  };
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!msgContent.trim() || !activeConversation) return;
 
-  const sendMessage = () => {
-    if (newMessage.trim() && selectedChat) {
-      const newMsg = {
-        id: messages.length + 1,
-        sender: 'admin',
-        text: newMessage,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        isOwn: true
-      };
-      setMessages([...messages, newMsg]);
-      setNewMessage('');
+    try {
+      await dispatch(sendMessage({
+        destinataire: activeConversation,
+        contenu: msgContent
+      }));
+      setMsgContent('');
+    } catch (err) {
+      toast.error('Erreur lors de l\'envoi');
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') sendMessage();
-  };
+  const filteredConversations = conversations.filter(c => 
+    c.other_user_nom.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const getRoleBadge = (role) => {
-    switch (role) {
-      case 'proprietaire':
-        return <Badge variant="success">Propriétaire</Badge>;
-      case 'locataire':
-        return <Badge variant="info">Locataire</Badge>;
-      default:
-        return <Badge>Autre</Badge>;
-    }
-  };
+  const activeConvData = conversations.find(c => c.other_user_id === activeConversation);
 
   return (
-    <div className="space-y-6 animate-fade-in h-[calc(100vh-120px)]">
-      
-      {/* HEADER */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-primary">Messagerie</h1>
-          <p className="text-secondary mt-2">Discutez avec vos clients et propriétaires</p>
+    <div className="h-[calc(100vh-140px)] flex gap-6 animate-fade-in">
+      <div className="w-80 flex flex-col gap-4">
+        <div className="relative">
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input 
+            type="text" 
+            placeholder="Rechercher un utilisateur..." 
+            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-        <Button variant="primary" onClick={() => setShowNewChatModal(true)}>
-          <Users size={20} className="mr-2" />
-          Nouvelle conversation
-        </Button>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-
-        {/* LISTE DES CHATS */}
-        <Card className="h-full flex flex-col">
-          <CardHeader>
-            <div className="relative">
-              <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
-              <input type="text" placeholder="Rechercher..." className="input-field pl-10 py-2" />
-            </div>
-          </CardHeader>
-
-          <CardBody className="flex-1 overflow-y-auto p-0">
-            {chats.map(chat => (
-              <div
-                key={chat.id}
-                onClick={() => handleSelectChat(chat)}
-                className="p-4 border-b border-border cursor-pointer hover:bg-gray-50"
+        <Card className="flex-1 border-0 shadow-sm overflow-hidden flex flex-col bg-white">
+          <div className="p-4 border-b border-gray-50 bg-gray-50/50">
+            <h3 className="font-bold text-gray-900">Support & Clients</h3>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {filteredConversations.map(conv => (
+              <div 
+                key={conv.id}
+                onClick={() => handleSelectConversation(conv.other_user_id)}
+                className={`p-4 flex items-center gap-3 cursor-pointer transition-all hover:bg-gray-50 border-b border-gray-50/50 ${activeConversation === conv.other_user_id ? 'bg-brand-50/50 border-l-4 border-l-brand-500' : ''}`}
               >
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold">{chat.avatar}</span>
-                    </div>
-                    {chat.online && (
-                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                    )}
-                  </div>
-
-                  <div className="flex-1">
-                    <div className="flex justify-between">
-                      <h3 className="font-bold">{chat.name}</h3>
-                      <span className="text-xs text-secondary">{chat.time}</span>
-                    </div>
-
-                    <div className="flex justify-between items-center mt-1">
-                      <p className="text-sm text-secondary truncate w-32">{chat.lastMessage}</p>
-                      {chat.unread > 0 && (
-                        <span className="bg-brand-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                          {chat.unread}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="mt-1">{getRoleBadge(chat.role)}</div>
-                  </div>
+                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 shrink-0">
+                  <User size={24} />
                 </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-baseline">
+                    <h4 className="font-bold text-gray-900 truncate text-sm">{conv.other_user_nom}</h4>
+                    <span className="text-[10px] text-gray-400">{conv.last_message_date ? new Date(conv.last_message_date).toLocaleDateString() : ''}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 truncate mt-1">{conv.last_message}</p>
+                </div>
+                {conv.unread_count > 0 && (
+                  <span className="w-5 h-5 bg-brand-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {conv.unread_count}
+                  </span>
+                )}
               </div>
             ))}
-          </CardBody>
-        </Card>
-
-        {/* ZONE DE CHAT */}
-        <Card className="lg:col-span-2 h-full flex flex-col">
-          {selectedChat ? (
-            <>
-              <CardHeader className="flex justify-between items-center">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold">{selectedChat.avatar}</span>
-                  </div>
-                  <div>
-                    <h3 className="font-bold">{selectedChat.name}</h3>
-                    <p className="text-xs text-green-500">
-                      {selectedChat.online ? 'En ligne' : 'Hors ligne'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm"><Phone size={16} /></Button>
-                  <Button variant="outline" size="sm"><Video size={16} /></Button>
-                  <Button variant="outline" size="sm"><MoreVertical size={16} /></Button>
-                </div>
-              </CardHeader>
-
-              {/* MESSAGES */}
-              <CardBody className="flex-1 overflow-y-auto">
-                <div className="space-y-4">
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex ${msg.isOwn ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`max-w-[70%] rounded-2xl p-3 ${
-                          msg.isOwn ? 'bg-brand-500 text-white' : 'bg-gray-100'
-                        }`}
-                      >
-                        <p className="text-sm">{msg.text}</p>
-                        <p className="text-xs mt-1 opacity-70">{msg.time}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardBody>
-
-              {/* INPUT */}
-              <div className="p-4 border-t border-border">
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm"><Paperclip size={18} /></Button>
-                  <Button variant="outline" size="sm"><Smile size={18} /></Button>
-
-                  <input
-                    type="text"
-                    placeholder="Écrivez votre message..."
-                    className="flex-1 input-field py-2"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                  />
-
-                  <Button variant="primary" onClick={sendMessage}>
-                    <Send size={18} />
-                  </Button>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <MessageSquare size={48} className="mx-auto text-gray-300 mb-3" />
-                <p className="text-secondary">Sélectionnez une conversation</p>
-              </div>
-            </div>
-          )}
+          </div>
         </Card>
       </div>
 
-      {/* MODAL */}
-      <Modal
-        isOpen={showNewChatModal}
-        onClose={() => setShowNewChatModal(false)}
-        title="Nouvelle conversation"
-      >
-        <div className="space-y-4">
-          <input type="text" className="input-field" placeholder="Nom ou email..." />
-
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {chats.map(chat => (
-              <div key={chat.id} className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-xl cursor-pointer">
-                <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center">
-                  <span className="text-brand-500 font-bold">{chat.avatar}</span>
+      <Card className="flex-1 border-0 shadow-sm overflow-hidden flex flex-col bg-white">
+        {activeConversation ? (
+          <>
+            <div className="p-4 border-b border-gray-50 flex justify-between items-center bg-white z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-brand-50 text-brand-500 rounded-xl flex items-center justify-center">
+                  <User size={20} />
                 </div>
                 <div>
-                  <p className="font-medium">{chat.name}</p>
-                  <p className="text-xs text-secondary">{chat.role}</p>
+                  <h3 className="font-bold text-gray-900 text-sm">{activeConvData?.other_user_nom}</h3>
+                  <p className="text-[10px] text-brand-500 font-bold uppercase tracking-widest">{activeConvData?.other_user_role}</p>
                 </div>
               </div>
-            ))}
-          </div>
+              <div className="flex items-center gap-2">
+                <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-lg transition-all"><Phone size={18} /></button>
+                <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-lg transition-all"><Info size={18} /></button>
+                <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-lg transition-all"><MoreVertical size={18} /></button>
+              </div>
+            </div>
 
-          <div className="flex space-x-3 pt-4">
-            <Button variant="outline" className="flex-1" onClick={() => setShowNewChatModal(false)}>
-              Annuler
-            </Button>
-            <Button variant="primary" className="flex-1">
-              Démarrer
-            </Button>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/30">
+              {messages.map(msg => {
+                const isMe = msg.expediteur === user.id;
+                return (
+                  <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[70%] p-4 rounded-2xl shadow-sm text-sm ${isMe ? 'bg-brand-500 text-white rounded-tr-none' : 'bg-white text-gray-900 rounded-tl-none'}`}>
+                      <p>{msg.contenu}</p>
+                      <p className={`text-[10px] mt-2 ${isMe ? 'text-white/70 text-right' : 'text-gray-400'}`}>
+                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="p-4 border-t border-gray-50 bg-white">
+              <form onSubmit={handleSendMessage} className="flex gap-3">
+                <input 
+                  type="text" 
+                  placeholder="Écrivez votre réponse..." 
+                  className="flex-1 px-6 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all"
+                  value={msgContent}
+                  onChange={(e) => setMsgContent(e.target.value)}
+                />
+                <Button type="submit" variant="primary" className="rounded-2xl w-12 h-12 flex items-center justify-center p-0 shadow-lg shadow-brand-500/20 shrink-0">
+                  <Send size={20} />
+                </Button>
+              </form>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-12 bg-gray-50/20">
+            <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-gray-50">
+              <MessageSquare size={48} className="text-gray-200" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900">Console d'administration Chat</h3>
+            <p className="text-gray-500 mt-2 max-w-xs mx-auto">
+              Sélectionnez un utilisateur pour répondre à ses questions ou l'assister dans sa gestion.
+            </p>
           </div>
-        </div>
-      </Modal>
+        )}
+      </Card>
     </div>
   );
 };

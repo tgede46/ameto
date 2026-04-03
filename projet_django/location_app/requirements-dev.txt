@@ -1,0 +1,24 @@
+-r requirements.txt
+
+# ── Testing ──
+pytest==7.4.0
+pytest-django==4.5.2
+pytest-cov==4.1.0
+factory-boy==3.3.0
+
+# ── Code Quality ──
+flake8==6.1.0
+flake8-docstrings==1.7.0
+black==23.11.0
+isort==5.12.0
+pylint==3.0.0
+
+# ── Security ──
+bandit==1.7.5
+safety==2.3.5
+
+# ── Environment Variables ──
+python-decouple>=3.8
+
+# ── Documentation ──
+# sphinx==7.2.0

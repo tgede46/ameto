@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../components/common/Button';
+import logoAmeto from '../assets/logo_ameto.png';
 
 const Home = () => {
   return (
@@ -9,21 +10,18 @@ const Home = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 bg-brand-500 rounded-3xl flex items-center justify-center shadow-lg">
-              <span className="text-white text-3xl font-bold">I</span>
-            </div>
+            <img src={logoAmeto} alt="Amétô" className="w-24 h-24 object-contain" />
           </div>
-          <h1 className="text-5xl font-bold text-primary mb-4">
-            Immo<span className="text-brand-500">Tech</span>
-          </h1>
+          
           <p className="text-xl text-secondary max-w-2xl mx-auto">
-            Gérez votre patrimoine immobilier simplement et efficacement
+            Gérez votre patrimoine immobilier simplement et efficacement au Togo
           </p>
         </div>
 
+
         {/* Cards */}
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <Link to="/owner/dashboard" className="block">
+          <Link to="/login" className="block">
             <div className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 text-center group">
               <div className="w-20 h-20 bg-brand-50 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
                 <svg className="w-10 h-10 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,7 +36,7 @@ const Home = () => {
             </div>
           </Link>
 
-          <Link to="/admin/dashboard" className="block">
+          <Link to="/login" className="block">
             <div className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 text-center group">
               <div className="w-20 h-20 bg-brand-50 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
                 <svg className="w-10 h-10 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,15 +52,6 @@ const Home = () => {
           </Link>
         </div>
 
-        {/* Info Demo */}
-        <div className="mt-12 text-center">
-          <div className="bg-white/80 backdrop-blur rounded-2xl p-6 max-w-2xl mx-auto">
-            <p className="text-secondary">
-              ⚡ <strong className="text-primary">Mode démo</strong> - Interface sans backend<br />
-              Les données affichées sont des exemples statiques
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );
