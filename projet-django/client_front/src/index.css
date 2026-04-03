@@ -1,0 +1,448 @@
+@import "tailwindcss";
+
+/* ============================================
+   AMÉTÔ — DESIGN SYSTEM v2.0
+   Inspiration: Airbnb / Premium Real Estate
+   ============================================ */
+
+@theme {
+  --color-brand-50: #fff0f1;
+  --color-brand-100: #ffe2e4;
+  --color-brand-200: #ffc9cc;
+  --color-brand-300: #ffa0a7;
+  --color-brand-400: #ff6b77;
+  --color-brand-500: #FF385C;
+  --color-brand-600: #e8152e;
+  --color-brand-700: #c50e23;
+  --color-brand-800: #a30f21;
+  --color-brand-900: #87121f;
+
+  --color-gold-400: #f5b942;
+  --color-gold-500: #E9A319;
+
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F7F7F7;
+  --color-border: #EBEBEB;
+  --color-text-primary: #222222;
+  --color-text-secondary: #717171;
+  --color-text-muted: #b0b0b0;
+}
+
+/* ---- Reset & Base ---- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #FFFFFF;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: #222222;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ---- Typography ---- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* ---- Transitions globales (hyper fluides 0.2s) ---- */
+a, button, input, select, textarea, [role="button"] {
+  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* ---------- ANIMATIONS ---------- */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ---- Utility Classes ---- */
+
+.animate-fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.4,0,0.2,1) both; }
+.animate-fade-in { animation: fadeIn 0.4s ease both; }
+.animate-scale-in { animation: scaleIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
+.animate-float { animation: float 3s ease-in-out infinite; }
+
+/* Stagger delays */
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.1s; }
+.delay-3 { animation-delay: 0.15s; }
+.delay-4 { animation-delay: 0.2s; }
+.delay-5 { animation-delay: 0.25s; }
+.delay-6 { animation-delay: 0.3s; }
+
+/* ---- Glassmorphism ---- */
+.glass {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+.glass-dark {
+  background: rgba(17, 17, 17, 0.45);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.glass-subtle {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* ---- Card Hover 3D ---- */
+.card-3d {
+  transform-style: preserve-3d;
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease;
+  will-change: transform;
+}
+
+.card-3d:hover {
+  box-shadow: 0 30px 60px rgba(0,0,0,0.15), 0 12px 24px rgba(0,0,0,0.1);
+}
+
+/* ---- Gradient Text ---- */
+.gradient-text {
+  background: linear-gradient(135deg, #FF385C 0%, #E9A319 50%, #FF385C 100%);
+  background-size: 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* ---- Shimmer Loading ---- */
+.shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ---- Floating Map Pin ---- */
+.map-pin-pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: pulse-ring 1.5s cubic-bezier(0,0,0.2,1) infinite;
+}
+
+/* ---- Input focus ---- */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+}
+
+/* ---- Image carousel dots ---- */
+.carousel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.carousel-dot.active {
+  background: #FFFFFF;
+  width: 16px;
+  border-radius: 3px;
+}
+
+/* ---- Leaflet Map overrides ---- */
+.leaflet-container {
+  font-family: 'Inter', sans-serif !important;
+  border-radius: inherit;
+  z-index: 10;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 16px !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+  border: 1px solid #EBEBEB;
+}
+
+.leaflet-popup-tip-container { display: none !important; }
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+.leaflet-control-zoom a {
+  border-radius: 0 !important;
+  color: #222 !important;
+  font-size: 18px !important;
+  line-height: 36px !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+
+/* ---- Navigation Dropdown ---- */
+.nav-dropdown {
+  transform-origin: top right;
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ---- Property Card ---- */
+.property-card {
+  cursor: pointer;
+}
+
+.property-card .card-image {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  aspect-ratio: 1 / 1;
+}
+
+.property-card .card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-origin: center center;
+}
+
+.property-card:hover .card-image img {
+  transform: scale(1.1) translateZ(20px);
+}
+
+/* ---- Category Bar ---- */
+.category-item {
+  position: relative;
+  padding-bottom: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  opacity: 0.65;
+}
+.category-item:hover { opacity: 1; }
+.category-item.active {
+  opacity: 1;
+  color: #222;
+}
+
+/* ---- Booking Card Shadow ---- */
+.booking-card-shadow {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.06);
+}
+
+/* ---- Star Rating ---- */
+.star { fill: #222; color: #222; }
+
+/* ---- Status Badges ---- */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.status-available { background: #D1FAE5; color: #059669; }
+.status-reserved  { background: #FEF3C7; color: #D97706; }
+.status-sold      { background: #FEE2E2; color: #DC2626; }
+.status-rented    { background: #DBEAFE; color: #2563EB; }
+
+/* ---- Mobile bottom nav ---- */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid #EBEBEB;
+  z-index: 90;
+  padding: 12px 24px calc(12px + env(safe-area-inset-bottom));
+}
+
+/* ---- Form Inputs ---- */
+.ameto-input {
+  width: 100%;
+  background: #F7F7F7;
+  border: 2px solid #F7F7F7;
+  border-radius: 14px;
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+.ameto-input:focus {
+  background: #fff;
+  border-color: #FF385C;
+  box-shadow: 0 0 0 3px rgba(255,56,92,0.08);
+}
+
+/* ---- Buttons ---- */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #FF385C 0%, #e8152e 100%);
+  color: #fff;
+  font-weight: 700;
+  padding: 14px 28px;
+  border-radius: 12px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(255,56,92,0.3);
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(255,56,92,0.4);
+}
+.btn-primary:active { transform: scale(0.97); }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #222222;
+  color: #fff;
+  font-weight: 700;
+  padding: 14px 28px;
+  border-radius: 12px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+}
+.btn-secondary:hover {
+  background: #111;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+.btn-secondary:active { transform: scale(0.97); }
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: #222;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  border: 1.5px solid #DEDDDD;
+  transition: all 0.3s ease;
+}
+.btn-outline:hover {
+  background: #F7F7F7;
+  border-color: #222;
+}
+
+/* ---- Search Bar ---- */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #DDDDDD;
+  border-radius: 40px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+  transition: box-shadow 0.3s ease;
+  cursor: pointer;
+}
+.search-bar:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.12), 0 6px 20px rgba(0,0,0,0.08);
+}
+
+/* ---- Page Transition ---- */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* ---- Responsive grid breaker ---- */
+@media (max-width: 640px) {
+  .property-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Liquid Glass Dashboard Animations ---- */
+.animate-blob {
+  animation: blob 8s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(20px, -30px) scale(1.1); }
+  100% { transform: translate(-20px, 20px) scale(0.95); }
+}

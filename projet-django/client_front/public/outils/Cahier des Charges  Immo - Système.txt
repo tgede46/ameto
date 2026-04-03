@@ -1,0 +1,113 @@
+Cahier des Charges : Immo - Système de Gestion Immobilière Automatisée
+1. Contexte et Objectifs
+Projet : ImmoTech est une application fullstack conçue pour les agences immobilières togolaises, permettant aux propriétaires de numériser ventes et locations, d'automatiser documents et comptabilité, et d'améliorer la rentabilité via un tableau de bord analytique.
+Objectifs principaux :
+•	Centraliser la gestion des biens immobiliers (locations, ventes, baux).
+•	Automatiser workflows (paiements, documents, notifications).
+•	Fournir transparence et traçabilité pour agences, propriétaires et clients.
+•	Intégrer paiements locaux (T-Money, Flooz, virements bancaires CFA).
+•	Respecter normes togolaises (fiscalité, diagnostics immobiliers adaptés).
+Portée : Web app responsive (mobile-first pour Lomé et régions), avec backend sécurisé, frontend intuitif, et APIs tierces (Google Maps, PDF generation, SMS/Email via Twilio/Africastalking).
+Technologies suggérées (orienté objet avancé) :
+•	Backend : Java Spring Boot (ou Node.js/Express) avec ORM (Hibernate).
+•	Frontend : React.js/Vue.js avec state management (Redux).
+•	Base de données : PostgreSQL (relationnelle pour transactions).
+•	Auth : JWT/OAuth2, rôles RBAC.
+•	Hébergement : AWS/Heroku, avec CDN pour photos.
+2. Fonctionnalités Détaillées par Module
+Catégorie	Sous-types
+Habitation	Studio, T1, T2, T3+, Maison, Loft, Villa
+Professionnel	Bureau, Coworking, Local commercial, Entrepôt
+Spécifique	Parking/Box, Terrain nu, Cave, Garage
+2.1 Gestion du Patrimoine Immobilier
+•	Classification des biens :
+•	Fiche bien détaillée (CRUD complet) :
+•	Identité : Adresse (rue, quartier, Lomé/Maritime), superficie (m²), géolocalisation (Google Maps API, coordonnées GPS), photos (upload multiple, galerie zoomable, max 20 par bien).
+•	Technique : Description (5000 caractères), équipements (checkbox : ascenseur, climatisation, cuisine équipée, parking), DPE simplifié (échelle A-G, upload PDF), diagnostics (amiante, électricité adaptés Togo).
+•	Financier : Loyer HC (CFA), provisions charges, dépôt garantie (3 mois max), prix vente (CFA), frais agence (5-10%).
+•	Statut : Disponible, Loué, Vendu, En travaux, Sous compromis, Réservé.
+•	Ventes spécifiques : Prix TTC, frais notaire estimés, calendrier visites.
+•	Fonctionnalités avancées : Filtrage dynamique (prix slider, zone carte interactive, type), recherche full-text, export CSV/PDF catalogue.
+2.2 Gestion des Locations, Ventes et Locataires/Acheteurs
+•	Dossier usager numérique (locataire/acheteur) :
+•	État civil : Nom, prénom, date naissance, nationalité, profession, revenus mensuels (justificatifs upload : fiches paie, avis imposition).
+•	Coordonnées : Email, téléphone (WhatsApp intégré), adresse actuelle.
+•	Garantie : Détails garant (nom, revenus), ou assurance loyers impayés.
+•	Score confiance : Algorithme simple (historique paiements 0-100%, retards <5%).
+•	Contrats dématérialisés :
+•	Bail location : Dates entrée/sortie, indexation loyer (IRL annuel +2%), état lieux entrée/sortie (génération PDF avec photos avant/après).
+•	Compromis vente : Montant acompte (10%), conditions suspensives (financement), signature électronique (via DocuSign-like).
+•	Génération auto : PDF signables, archivage 10 ans.
+•	Workflow paiements (états : En attente → Déclaré → Confirmé → Quittance générée) :
+•	Méthodes : T-Money, Flooz, virement bancaire (IBAN/BIC togolais).
+•	Locataire upload preuve (screenshot reçu, date, montant).
+•	Proprio/admin valide (bouton "Confirmer", notification push/email/SMS).
+2.3 Module Comptabilité et Rentabilité
+•	Flux trésorerie : Enregistrement auto loyers (date, montant), suivi impayés (relance J+5/J+15).
+•	Dépenses : Saisie factures (travaux, taxes foncières Togo, entretien), catégories (maintenance, assurances).
+Métrique	Calcul	Visualisation
+Rendement brut	(Loyer annuel / Prix achat) × 100	Graphique ligne (par bien/période)
+Bénéfice net	Loyers - Charges - Frais agence	Tableau de bord KPI (taux occupation 0-100%)
+ROI	Bénéfice net / Investissement initial	Camembert (par catégorie bien)
+•	Analyses :
+•	Fiscalité : Export données (revenus fonciers, format Excel pour DGI Togo), simulation impôts (15-30% tranches).
+2.4 Automatisation et Notifications (Système Expert)
+•	Moteur événements (Cron jobs) :
+•	Documents : Quittances PDF (mensuelles), baux, états lieux.
+•	Relances : Email/SMS (templates personnalisables : "Paiement en retard de X CFA").
+•	Alertes : Fin bail (préavis 3 mois), révision loyer, diagnostics expirés, maintenance signalée.
+•	Maintenance : Portail signalements (locataire upload photos avant/après, justificatifs dépenses), workflow approbation (proprio paie ou locataire avance).
+3. Rôles et Volets Utilisateurs
+Rôle	Accès	Fonctionnalités clés
+Administrateur (Agence)	Total	Création/validation biens, modération dossiers, supervision finances, rapports globaux.
+Propriétaire	Ses biens	Dashboard rentabilité, validation paiements, historique maintenance, coordonnées bancaires visibles.
+Client (Locataire/Acheteur)	Catalogue public	Filtres recherche, candidature (upload docs), notification paiements, signalements maintenance.
+•	Authentification : Inscription/validation email/SMS, 2FA (Google Authenticator), mots de passe hachés (BCrypt).
+4. Sécurité et Conformité
+•	Données : RGPD-like (consentement, droit oubli), chiffrement (HTTPS, AES photos).
+•	Logs : Audit trails (tous changements tracés).
+•	Conformité Togo : Intégration API DGI pour fiscalité, diagnostics locaux.
+5. Interface et UX
+•	Responsive (Bootstrap/Tailwind), thèmes sombre/clair.
+•	Dashboards : Charts (Chart.js), cartes interactives.
+•	Multilingue : Français (défaut), Anglais.
+
+
+
+Scénario d'Utilisation Détaillé et Complet
+Voici un scénario end-to-end réaliste, couvrant location, vente et maintenance, pour 3 acteurs principaux. Il simule une utilisation quotidienne à Lomé.
+Acteur 1 : Propriétaire (M. Koffi, investisseur avec 5 biens).
+1.	M. Koffi se connecte au portail Propriétaire (login via T-Money linked).
+2.	Contacte l'agence admin via chat intégré : "Je veux louer mon T2 à Tokoin."
+3.	Admin crée fiche bien : Upload 15 photos (chambre, cuisine), adresse "Rue des Palmiers, Tokoin", loyer 150.000 CFA HC, T-Money 123456789.
+4.	M. Koffi valide fiche → Bien publié (statut : Disponible).
+5.	Dashboard : Voit taux occupation 80%, rendement net 7,2%.
+Acteur 2 : Client (Mme Afi, chercheuse d'appart).
+1.	Sur portail Client (anonyme), filtre : "T2, <200k CFA, Tokoin" → Voit fiche avec photos, Maps, coordonnées proprio.
+2.	Candidature : Upload CNI, fiches paie (revenus 250k CFA), garant (frère).
+3.	Admin approuve score confiance 95% → Visite organisée (calendrier sync).
+4.	Après visite, paie caution 450k CFA via Flooz → Upload reçu (screenshot daté 05/03/2026).
+5.	Notifie "Paiement déclaré" → État passe à "En attente confirmation".
+Acteur 3 : Admin Agence (M. Yao, gestionnaire).
+1.	Voit alerte "Nouveau paiement T2 Tokoin" → Vérifie docs Mme Afi.
+2.	Contacte M. Koffi pour validation → M. Koffi check son Flooz, confirme.
+3.	Admin clique "Confirmer" → Système génère : Bail PDF (dates 01/04/2026-01/04/2028), état lieux entrée (photos uploadées), quittance caution.
+4.	Notifications : Email/SMS à tous, statut bien → "Loué".
+Phase Maintenance (1 mois après).
+1.	Mme Afi signale fuite douche : Upload photos avant, description.
+2.	M. Koffi reçoit alerte push → Approuve 50k CFA travaux.
+3.	Plombier intervient ; Mme Afi upload photos après + reçu.
+4.	M. Koffi rembourse via T-Money → Historique mis à jour, score confiance +5%.
+Phase Vente (Autre bien).
+1.	M. Koffi met villa en vente (800M CFA).
+2.	Client B. voit fiche, visite, signe compromis (acompte 80M via virement).
+3.	États : Sous compromis → Vendu (auto-relance notaire après 30j).
+Fin mensuelle :
+•	Auto-quittance loyer générée (150k -10% agence = 135k à proprio).
+•	Dashboard proprio : +1,2M CFA rentrées, alerte révision loyer (+3% IRL).
+•	Admin export rapport fiscal DGI.
+Ce scénario boucle tous modules, avec 100+ interactions traçables.
+
+
+
+
