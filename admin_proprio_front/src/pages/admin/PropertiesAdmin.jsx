@@ -6,6 +6,7 @@ import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Search, Plus, Edit, Eye, Trash2, Filter, Home } from 'lucide-react';
+import { toApiMediaUrl } from '../../services/api';
 
 const PropertiesAdmin = () => {
   const dispatch = useDispatch();
@@ -26,6 +27,13 @@ const PropertiesAdmin = () => {
       case 'EN_TRAVAUX': return <Badge variant="danger">En travaux</Badge>;
       default: return <Badge>{status || 'Inconnu'}</Badge>;
     }
+  };
+
+  const getPropertyImageUrl = (property) => {
+    const firstPhoto = property.photos_bien?.[0] || property.photo_principale;
+    if (!firstPhoto) return null;
+    const rawUrl = firstPhoto.image_url || firstPhoto.image;
+    return toApiMediaUrl(rawUrl);
   };
 
   if (loading && properties.length === 0) return <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>;
@@ -88,8 +96,8 @@ const PropertiesAdmin = () => {
                   <td className="p-6">
                     <div className="flex items-center space-x-4">
                       <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
-                        {property.photos_bien?.[0] ? (
-                          <img src={property.photos_bien[0].image_url || property.photos_bien[0].image} className="w-full h-full object-cover" alt="" />
+                        {getPropertyImageUrl(property) ? (
+                          <img src={getPropertyImageUrl(property)} className="w-full h-full object-cover" alt="" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-300"><Home size={20} /></div>
                         )}

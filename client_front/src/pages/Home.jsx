@@ -8,6 +8,7 @@ import L from "leaflet";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProperties } from "../store/propertySlice";
+import { toApiMediaUrl } from "../services/api";
 
 /* ─────────────────────────────
    STATUS STYLE HELPER
@@ -30,12 +31,15 @@ function PropertyCard({ property, isFav, onToggleFav }) {
   const [isHovering, setIsHovering] = useState(false);
   const cardRef = useRef(null);
 
-  const images = property.photos?.length > 0 
-    ? property.photos.map(p => {
-        if (!p || !p.image) return "/outils/M1.png";
-        return p.image.startsWith('http') ? p.image : `http://localhost:8000${p.image}`;
-      }) 
-    : ["/outils/M1.png"];
+  const toAbsoluteMediaUrl = (url) => {
+    return toApiMediaUrl(url);
+  };
+
+  const images = property.photos_bien?.length > 0
+    ? property.photos_bien.map((p) => toAbsoluteMediaUrl(p?.image_url || p?.image) || "/outils/M1.png")
+    : (property.photo_principale
+      ? [toAbsoluteMediaUrl(property.photo_principale.image_url || property.photo_principale.image) || "/outils/M1.png"]
+      : ["/outils/M1.png"]);
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -138,7 +142,7 @@ function PropertyCard({ property, isFav, onToggleFav }) {
         <div className="p-5">
           <div className="flex justify-between items-start mb-2">
             <h3 className="font-bold text-gray-900 text-lg truncate group-hover:text-[#FF385C] transition-colors">
-              {property.titre}
+              {property.adresse || 'Logement'}
             </h3>
             <div className="flex items-center gap-1 shrink-0 bg-gray-50 px-2 py-1 rounded-lg">
               <Star size={14} className="text-yellow-400 fill-yellow-400" />
@@ -148,24 +152,24 @@ function PropertyCard({ property, isFav, onToggleFav }) {
 
           <p className="text-gray-500 text-sm flex items-center gap-1.5 mb-4">
             <MapPin size={14} className="text-gray-400" />
-            {property.quartier}, {property.ville}
+            {property.categorie?.libelle || 'Lomé'}, Togo
           </p>
 
           <div className="flex items-center gap-4 mb-4 text-gray-500 text-xs font-medium">
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-              {property.chambres} ch.
+              {property.type_appartement?.libelle || property.statut}
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-              {property.superficie} m²
+              {property.equipements?.length} équipements
             </div>
           </div>
 
           <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
             <div className="flex flex-col">
               <span className="text-2xl font-black text-gray-900 leading-none">
-                {formatPrice(property.prix)}
+                {formatPrice(property.loyer_hc)}
               </span>
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
                 {property.type_bien}
@@ -190,7 +194,7 @@ export default function Home() {
   const [favorites, setFavorites] = useState([]);
   const [searchQuartier, setSearchQuartier] = useState('');
   const [priceRange, setPriceRange] = useState([0, 5000000]);
-  
+
   const dispatch = useDispatch();
   const formatPrice = (price) => {
     if (price === null || price === undefined) return '0 CFA';
@@ -198,7 +202,7 @@ export default function Home() {
     if (isNaN(numericPrice)) return '0 CFA';
     return new Intl.NumberFormat('fr-FR').format(numericPrice) + ' CFA';
   };
-  
+
   const propertiesData = useSelector(state => state.properties.list);
   const loading = useSelector(state => state.properties.loading);
   const error = useSelector(state => state.properties.error);
@@ -206,15 +210,15 @@ export default function Home() {
   const allProperties = Array.isArray(propertiesData) ? propertiesData : (propertiesData?.results || []);
 
   const filtered = allProperties.filter(p => {
-    const matchesCategory = activeFilter === 'all' || 
-                           p.type_bien === activeFilter || 
-                           p.categorie?.libelle === activeFilter;
-    
+    const matchesCategory = activeFilter === 'all' ||
+      p.type_bien === activeFilter ||
+      p.categorie?.libelle === activeFilter;
+
     const name = p.nom || p.titre || p.adresse || '';
     const quartier = p.quartier || p.localisation || '';
-    
-    const matchesSearch = name.toLowerCase().includes(searchQuartier.toLowerCase()) || 
-                         quartier.toLowerCase().includes(searchQuartier.toLowerCase());
+
+    const matchesSearch = name.toLowerCase().includes(searchQuartier.toLowerCase()) ||
+      quartier.toLowerCase().includes(searchQuartier.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -249,7 +253,7 @@ export default function Home() {
     if (searchQuartier) filters.quartier = searchQuartier;
     if (priceRange[0] > 0) filters.min_price = priceRange[0];
     if (priceRange[1] < 5000000) filters.max_price = priceRange[1];
-    
+
     dispatch(fetchProperties(filters));
   }, [dispatch, activeFilter, searchQuartier, priceRange]);
 
@@ -264,7 +268,7 @@ export default function Home() {
             <p className="text-sm opacity-80 mb-6">
               {typeof error === 'object' ? (error.detail || error.message || JSON.stringify(error)) : error}
             </p>
-            <button 
+            <button
               onClick={() => window.location.reload()}
               className="btn-primary w-full"
             >
@@ -287,9 +291,9 @@ export default function Home() {
       {/* ── Hero Section ── */}
       <section className="relative w-full h-[65vh] md:h-[80vh] overflow-hidden bg-gray-900">
         {/* On remplace la vidéo manquante par une image statique pour éviter les erreurs console */}
-        <img 
-          src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=2000" 
-          alt="Luxe immobilier" 
+        <img
+          src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=2000"
+          alt="Luxe immobilier"
           className="absolute inset-0 w-full h-full object-cover opacity-70"
         />
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
@@ -427,7 +431,7 @@ export default function Home() {
 
                   const customIcon = L.divIcon({
                     className: 'custom-div-icon',
-                    html: `<div style="background-color: white; border: 2px solid #FF385C; color: #111; font-weight: bold; border-radius: 20px; padding: 4px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-size: 13px; cursor: pointer; white-space: nowrap;">${formatPrice(property.prix)}</div>`,
+                    html: `<div style="background-color: white; border: 2px solid #FF385C; color: #111; font-weight: bold; border-radius: 20px; padding: 4px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-size: 13px; cursor: pointer; white-space: nowrap;">${formatPrice(property.loyer_hc)}</div>`,
                     iconSize: [100, 40],
                     iconAnchor: [50, 20]
                   });
@@ -436,15 +440,25 @@ export default function Home() {
                     <Marker key={`${property.id}-${idx}`} position={[lat, lng]} icon={customIcon}>
                       <Popup className="premium-popup !p-0 !rounded-3xl overflow-hidden">
                         <Link to={`/property/${property.id}`} className="block w-64">
-                          <img 
-                            src={property.photos?.length > 0 ? `http://localhost:8000${property.photos[0].image}` : "/outils/M1.png"} 
-                            alt={property.titre} 
-                            className="w-full h-32 object-cover" 
+                          <img
+                            src={
+                              property.photos_bien?.length > 0
+                                ? ((property.photos_bien[0].image_url || property.photos_bien[0].image)?.startsWith('http')
+                                  ? (property.photos_bien[0].image_url || property.photos_bien[0].image)
+                                  : toApiMediaUrl(property.photos_bien[0].image_url || property.photos_bien[0].image))
+                                : (property.photo_principale
+                                  ? ((property.photo_principale.image_url || property.photo_principale.image)?.startsWith('http')
+                                    ? (property.photo_principale.image_url || property.photo_principale.image)
+                                    : toApiMediaUrl(property.photo_principale.image_url || property.photo_principale.image))
+                                  : "/outils/M1.png")
+                            }
+                            alt={property.adresse}
+                            className="w-full h-32 object-cover"
                           />
                           <div className="p-4">
-                            <p className="font-bold text-gray-900 truncate mb-1">{property.titre}</p>
-                            <p className="text-xs text-gray-500 truncate mb-2"><MapPin size={10} className="inline mr-1" />{property.quartier}, {property.ville}</p>
-                            <p className="font-bold text-brand-500">{formatPrice(property.prix)}</p>
+                            <p className="font-bold text-gray-900 truncate mb-1">{property.adresse || 'Logement'}</p>
+                            <p className="text-xs text-gray-500 truncate mb-2"><MapPin size={10} className="inline mr-1" />{property.categorie?.libelle || 'Lomé'}</p>
+                            <p className="font-bold text-brand-500">{formatPrice(property.loyer_hc)}</p>
                           </div>
                         </Link>
                       </Popup>
@@ -535,9 +549,9 @@ export default function Home() {
             className="relative bg-gray-900 rounded-[32px] overflow-hidden card-3d"
           >
             {/* Background Image Fallback */}
-            <img 
-              src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=2000" 
-              alt="Immobilier Togo" 
+            <img
+              src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=2000"
+              alt="Immobilier Togo"
               className="absolute inset-0 w-full h-full object-cover opacity-60"
             />
 

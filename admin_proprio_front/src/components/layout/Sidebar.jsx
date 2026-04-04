@@ -3,16 +3,16 @@ import { NavLink } from 'react-router-dom';
 import logoAmeto from '../../assets/logo_ameto.png';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
-import { 
-  LayoutDashboard, 
-  Building2, 
-  Users, 
-  BarChart3, 
-  FileText, 
-  Settings, 
-  Home, 
-  DollarSign, 
-  Wrench, 
+import {
+  LayoutDashboard,
+  Building2,
+  Users,
+  BarChart3,
+  FileText,
+  Settings,
+  Home,
+  DollarSign,
+  Wrench,
   MessageSquare,
   LogOut,
   HelpCircle,
@@ -36,18 +36,19 @@ const Sidebar = ({ userRole }) => {
     { icon: FileText, label: 'Rapports', path: '/admin/reports', color: 'text-orange-500' },
     { icon: Settings, label: 'Paramètres', path: '/admin/settings', color: 'text-gray-500' },
   ];
-  
+
   const ownerMenuItems = [
     { icon: LayoutDashboard, label: 'Tableau de bord', path: '/owner/dashboard', color: 'text-brand-500' },
     { icon: Home, label: 'Mes biens', path: '/owner/properties', color: 'text-blue-500' },
+    { icon: FileText, label: 'Candidatures', path: '/owner/candidatures', color: 'text-yellow-500' },
     { icon: DollarSign, label: 'Rentabilité', path: '/owner/financial', color: 'text-green-500' },
     { icon: Wrench, label: 'Maintenance', path: '/owner/maintenance', color: 'text-orange-500' },
     { icon: MessageSquare, label: 'Messagerie', path: '/owner/chat', color: 'text-purple-500' },
     { icon: Settings, label: 'Profil', path: '/owner/profile', color: 'text-gray-500' },
   ];
-  
+
   const menuItems = userRole === 'admin' ? adminMenuItems : ownerMenuItems;
-  
+
   return (
     <aside className="fixed left-0 top-0 w-64 h-full bg-white border-r border-border flex flex-col z-30 shadow-sm">
       {/* Logo Section */}
@@ -63,7 +64,7 @@ const Sidebar = ({ userRole }) => {
         </div>
       </div>
 
-      
+
       {/* Navigation Menu - prend tout l'espace disponible */}
       <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
         {menuItems.map((item) => (
@@ -71,10 +72,9 @@ const Sidebar = ({ userRole }) => {
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `group flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 ${
-                isActive 
-                  ? 'bg-brand-50 text-brand-500 shadow-sm' 
-                  : 'text-secondary hover:bg-gray-100 hover:text-primary'
+              `group flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 ${isActive
+                ? 'bg-brand-50 text-brand-500 shadow-sm'
+                : 'text-secondary hover:bg-gray-100 hover:text-primary'
               }`
             }
           >
@@ -84,21 +84,21 @@ const Sidebar = ({ userRole }) => {
               </div>
               <span className="font-medium">{item.label}</span>
             </div>
-            <ChevronRight 
-              size={16} 
-              className={`transition-all duration-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 ${item.color}`} 
+            <ChevronRight
+              size={16}
+              className={`transition-all duration-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 ${item.color}`}
             />
           </NavLink>
         ))}
       </nav>
-      
+
       {/* Footer Section - colle en bas */}
       <div className="border-t border-border p-4 space-y-2 bg-white">
         <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-secondary hover:bg-gray-100 hover:text-primary transition-all duration-300">
           <HelpCircle size={20} />
           <span className="font-medium">Aide & Support</span>
         </button>
-        <button 
+        <button
           onClick={handleLogout}
           className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-secondary hover:bg-red-50 hover:text-error transition-all duration-300"
         >
@@ -106,7 +106,7 @@ const Sidebar = ({ userRole }) => {
           <span className="font-medium">Déconnexion</span>
         </button>
 
-        
+
         {/* Version Info */}
         <div className="pt-4 text-center border-t border-border mt-2">
           <p className="text-xs text-secondary">Version 1.0.0</p>

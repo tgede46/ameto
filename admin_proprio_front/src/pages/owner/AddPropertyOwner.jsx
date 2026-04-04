@@ -66,10 +66,16 @@ const AddPropertyOwner = () => {
       return;
     }
 
+    const payload = { ...formData };
+    if (!payload.type_appartement_id) delete payload.type_appartement_id;
+    if (!payload.charges) delete payload.charges;
+    if (!payload.latitude) delete payload.latitude;
+    if (!payload.longitude) delete payload.longitude;
+
     setIsSubmitting(true);
     try {
       // 1. Créer le bien
-      const resultAction = await dispatch(createProperty(formData));
+      const resultAction = await dispatch(createProperty(payload));
       
       if (createProperty.fulfilled.match(resultAction)) {
         const newProperty = resultAction.payload;
@@ -77,16 +83,37 @@ const AddPropertyOwner = () => {
         // 2. Uploader les photos si présentes
         if (selectedPhotos.length > 0) {
           toast.loading('Upload des photos...', { id: 'upload' });
+          let failedUploads = 0;
+          let firstUploadError = null;
           for (let i = 0; i < selectedPhotos.length; i++) {
             const photoFormData = new FormData();
             photoFormData.append('image', selectedPhotos[i]);
-            photoFormData.append('ordre', i);
-            await dispatch(uploadPropertyPhoto({ 
+            const uploadAction = await dispatch(uploadPropertyPhoto({ 
               propertyId: newProperty.id, 
               photoData: photoFormData 
             }));
+
+            if (uploadPropertyPhoto.rejected.match(uploadAction)) {
+              failedUploads += 1;
+              if (!firstUploadError) {
+                firstUploadError = uploadAction.payload;
+              }
+            }
           }
           toast.dismiss('upload');
+
+          if (failedUploads > 0) {
+            const detail =
+              firstUploadError?.detail ||
+              firstUploadError?.image?.[0] ||
+              firstUploadError?.non_field_errors?.[0] ||
+              null;
+            toast.error(
+              detail
+                ? `${failedUploads} photo(s) non envoyee(s): ${detail}`
+                : `${failedUploads} photo(s) n'ont pas pu etre envoyees.`
+            );
+          }
         }
         
         toast.success('Bien créé avec succès !');

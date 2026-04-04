@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../services/api';
 
+const normalizeList = (payload) => (Array.isArray(payload) ? payload : (payload?.results || []));
+
 export const fetchConversations = createAsyncThunk(
   'notification/fetchConversations',
   async (_, { rejectWithValue }) => {
@@ -67,17 +69,37 @@ const notificationSlice = createSlice({
     builder
       .addCase(fetchConversations.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchConversations.fulfilled, (state, action) => {
         state.loading = false;
-        state.conversations = action.payload;
+        state.conversations = normalizeList(action.payload);
+      })
+      .addCase(fetchConversations.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchConversation.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
       .addCase(fetchConversation.fulfilled, (state, action) => {
+        state.loading = false;
         state.activeConversation = action.payload.userId;
-        state.messages = action.payload.messages;
+        state.messages = normalizeList(action.payload.messages);
+      })
+      .addCase(fetchConversation.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(sendMessage.pending, (state) => {
+        state.error = null;
       })
       .addCase(sendMessage.fulfilled, (state, action) => {
         state.messages.push(action.payload);
+      })
+      .addCase(sendMessage.rejected, (state, action) => {
+        state.error = action.payload;
       });
   },
 });

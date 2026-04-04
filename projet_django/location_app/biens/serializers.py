@@ -7,7 +7,7 @@ import uuid
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 from .models import (
-    Categorie, TypeAppartement, Bien, Bail, Paiement, Quittance, PhotoBien, VideoBien, Maintenance
+    Categorie, TypeAppartement, Bien, Bail, Paiement, Quittance, PhotoBien, VideoBien, Maintenance, Candidature
 )
 
 
@@ -58,9 +58,9 @@ class PhotoBienSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'bien', 'image', 'image_url',
             'image_base64_input', 'image_base64',
-            'legende', 'ordre', 'created_at',
+            'legende', 'created_at',
         ]
-        read_only_fields = ['id', 'image_base64', 'image_url', 'created_at']
+        read_only_fields = ['id', 'bien', 'image_base64', 'image_url', 'created_at']
         extra_kwargs = {'image': {'required': False}}
 
     def get_image_url(self, obj):
@@ -121,7 +121,7 @@ class VideoBienSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'bien', 'video', 'video_url',
             'thumbnail', 'thumbnail_url',
-            'titre', 'description', 'duree', 'ordre',
+            'titre', 'description', 'duree',
             'file_size_mb', 'created_at',
         ]
         read_only_fields = ['id', 'video_url', 'thumbnail_url', 'file_size_mb', 'created_at']
@@ -173,6 +173,7 @@ class BienListSerializer(serializers.ModelSerializer):
     type_appartement_libelle = serializers.CharField(
         source='type_appartement.libelle', read_only=True
     )
+    proprietaire_nom = serializers.CharField(source='proprietaire.full_name', read_only=True)
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
     photo_principale = serializers.SerializerMethodField()
 
@@ -180,12 +181,13 @@ class BienListSerializer(serializers.ModelSerializer):
         model = Bien
         fields = [
             'id', 'adresse', 'loyer_hc', 'charges', 'statut', 'statut_display',
-            'categorie_libelle', 'type_appartement_libelle',
+            'categorie_libelle', 'type_appartement_libelle', 'proprietaire_nom',
             'latitude', 'longitude', 'photo_principale', 'created_at',
         ]
 
     def get_photo_principale(self, obj):
-        photo = obj.photos_bien.filter(ordre=0).first()
+        # Prendre simplement la première photo disponible du bien
+        photo = obj.photos_bien.first()
         if photo:
             request = self.context.get('request')
             return PhotoBienSerializer(photo, context={'request': request}).data
@@ -209,6 +211,7 @@ class BienDetailSerializer(serializers.ModelSerializer):
         queryset=TypeAppartement.objects.all(),
         source='type_appartement', write_only=True, required=False, allow_null=True
     )
+    proprietaire_nom = serializers.CharField(source='proprietaire.full_name', read_only=True)
     proprietaire_id = serializers.PrimaryKeyRelatedField(
         source='proprietaire',
         read_only=True,
@@ -222,7 +225,7 @@ class BienDetailSerializer(serializers.ModelSerializer):
             'statut', 'statut_display',
             'categorie', 'categorie_id',
             'type_appartement', 'type_appartement_id',
-            'proprietaire_id',
+            'proprietaire_id', 'proprietaire_nom',
             'photos_bien', 'videos_bien',
             'created_at', 'updated_at',
         ]
@@ -258,20 +261,35 @@ class BailSerializer(serializers.ModelSerializer):
 
 class PaiementSerializer(serializers.ModelSerializer):
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
+    locataire_nom = serializers.CharField(source='locataire.full_name', read_only=True)
+    bien_nom = serializers.CharField(source='bail.bien.adresse', read_only=True)
+    proprietaire_nom = serializers.CharField(source='bail.bien.proprietaire.full_name', read_only=True)
+    bail_details = serializers.SerializerMethodField()
+
 
     class Meta:
         model = Paiement
         fields = [
-            'id', 'bail', 'locataire',
+            'id', 'bail', 'bail_details', 'locataire', 'locataire_nom', 'bien_nom', 'proprietaire_nom',
             'date_paiement', 'montant', 'commission_admin', 'montant_proprietaire',
             'reference',
             'statut', 'statut_display',
             'created_at', 'updated_at',
         ]
         read_only_fields = [
-            'id', 'commission_admin', 'montant_proprietaire',
+            'id', 'locataire', 'commission_admin', 'montant_proprietaire',
             'created_at', 'updated_at',
         ]
+
+    def get_bail_details(self, obj):
+        if not obj.bail:
+            return None
+        return {
+            'id': obj.bail.id,
+            'bien': obj.bail.bien.id,
+            'bien_adresse': obj.bail.bien.adresse,
+            'locataire_nom': obj.locataire.full_name
+        }
 
 
 # ─────────────────────────────────────────────
@@ -309,10 +327,56 @@ class QuittanceSerializer(serializers.ModelSerializer):
 class MaintenanceSerializer(serializers.ModelSerializer):
     bien_adresse = serializers.ReadOnlyField(source='bien.adresse')
     locataire_nom = serializers.SerializerMethodField()
+    statut_display = serializers.CharField(source='get_statut_display', read_only=True)
+    justificatif_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Maintenance
         fields = '__all__'
+        read_only_fields = ['id', 'locataire', 'date_signalement', 'created_at', 'updated_at']
 
     def get_locataire_nom(self, obj):
         return f"{obj.locataire.first_name} {obj.locataire.nom}"
+
+    def get_justificatif_url(self, obj):
+        request = self.context.get('request')
+        if obj.justificatif and hasattr(obj.justificatif, 'url'):
+            url = obj.justificatif.url
+            return request.build_absolute_uri(url) if request else url
+        return None
+
+
+# ─────────────────────────────────────────────
+# Candidature
+# ─────────────────────────────────────────────
+
+class CandidatureSerializer(serializers.ModelSerializer):
+    """
+    Sérialiseur pour la candidature du locataire.
+    """
+    locataire_nom = serializers.CharField(source='locataire.full_name', read_only=True)
+    bien_adresse = serializers.CharField(source='bien.adresse', read_only=True)
+    statut_display = serializers.CharField(source='get_statut_display', read_only=True)
+    bien_photo = serializers.SerializerMethodField()
+    bien_loyer = serializers.FloatField(source='bien.loyer_hc', read_only=True)
+    date_creation = serializers.DateTimeField(source='created_at', read_only=True)
+
+    class Meta:
+        model = Candidature
+        fields = [
+            'id', 'bien', 'bien_adresse', 'bien_loyer', 'bien_photo', 'locataire', 'locataire_nom', 'message',
+            'statut', 'statut_display', 'created_at', 'date_creation', 'updated_at'
+        ]
+        read_only_fields = ['id', 'locataire', 'created_at', 'date_creation', 'updated_at']
+
+    def get_bien_photo(self, obj):
+        # Récupérer la première photo du bien pour l'affichage miniature
+        photo = obj.bien.photos_bien.first()
+        if photo and photo.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(photo.image.url)
+            return photo.image.url
+        return None
+
+

@@ -1,21 +1,48 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchMaintenanceRequests } from '../../store/slices/maintenanceSlice';
+import { fetchConversation } from '../../store/slices/notificationSlice';
 import Card, { CardBody } from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { Wrench, Clock, CheckCircle, AlertTriangle, MessageSquare, MapPin } from 'lucide-react';
+import { Wrench, Clock, CheckCircle, AlertTriangle, MessageSquare, MapPin, XCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 const MaintenanceOwner = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { requests, loading, error } = useSelector(state => state.maintenance);
 
   useEffect(() => {
     dispatch(fetchMaintenanceRequests());
   }, [dispatch]);
 
+  const handleUpdateStatus = async (id, newStatus) => {
+    try {
+      await api.patch(`maintenances/${id}/`, { statut: newStatus });
+      const statusLabel = newStatus === 'APPROUVE' ? 'approuvée' : 
+                          newStatus === 'REFUSE' ? 'refusée' : 
+                          newStatus === 'TERMINE' ? 'terminée' : newStatus;
+      toast.success(`Intervention ${statusLabel}`);
+      dispatch(fetchMaintenanceRequests());
+    } catch (err) {
+      toast.error("Erreur lors de la mise à jour");
+    }
+  };
+
+  const handleChatWithTenant = (tenantId) => {
+    if (!tenantId) {
+      toast.error("Impossible de trouver le locataire");
+      return;
+    }
+    dispatch(fetchConversation(tenantId));
+    navigate('/owner/chat');
+  };
+
   const getStatusBadge = (status) => {
-    switch(status?.toUpperCase()) {
+    switch (status?.toUpperCase()) {
       case 'EN_ATTENTE': return <Badge variant="warning">En attente</Badge>;
       case 'APPROUVE': return <Badge variant="info">Approuvé</Badge>;
       case 'EN_COURS': return <Badge variant="info">En cours</Badge>;
@@ -26,7 +53,7 @@ const MaintenanceOwner = () => {
   };
 
   const getPriorityIcon = (priority) => {
-    switch(priority?.toUpperCase()) {
+    switch (priority?.toUpperCase()) {
       case 'URGENT': return <AlertTriangle className="text-red-500" size={18} />;
       case 'HAUTE': return <AlertTriangle className="text-orange-500" size={18} />;
       default: return <Clock className="text-blue-500" size={18} />;
@@ -63,11 +90,11 @@ const MaintenanceOwner = () => {
                     </div>
                     {getStatusBadge(request.statut)}
                   </div>
-                  
+
                   <p className="text-gray-600 mb-6 leading-relaxed">
                     {request.description}
                   </p>
-                  
+
                   <div className="flex flex-wrap items-center gap-6 pt-6 border-t border-gray-50">
                     <div className="flex items-center space-x-2">
                       {getPriorityIcon(request.priorite)}
@@ -82,21 +109,56 @@ const MaintenanceOwner = () => {
                         <span className="text-sm font-bold text-brand-500">Coût estimé: {parseFloat(request.cout_estime).toLocaleString()} CFA</span>
                       </div>
                     )}
+                    {request.justificatif_url && (
+                      <a
+                        href={request.justificatif_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm font-bold text-blue-600 hover:text-blue-700 underline"
+                      >
+                        Voir le justificatif envoyé
+                      </a>
+                    )}
                   </div>
+                  {request.justificatif_commentaire && (
+                    <p className="mt-4 text-sm text-gray-600 bg-blue-50 border border-blue-100 rounded-xl p-3">
+                      <span className="font-bold text-gray-800">Commentaire locataire :</span> {request.justificatif_commentaire}
+                    </p>
+                  )}
                 </div>
-                
+
                 <div className="bg-gray-50 p-6 md:w-64 flex flex-col justify-center space-y-3 border-t md:border-t-0 md:border-l border-gray-100">
-                  <button className="w-full py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm">
+                  <button 
+                    onClick={() => handleChatWithTenant(request.locataire)}
+                    className="w-full py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                  >
                     <MessageSquare size={18} />
                     Discuter
                   </button>
                   {request.statut === 'EN_ATTENTE' && (
-                    <button className="w-full py-3 bg-brand-500 text-white rounded-xl font-bold hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20">
-                      Approuver
-                    </button>
+                    <>
+                      <button
+                        onClick={() => handleUpdateStatus(request.id, 'APPROUVE')}
+                        className="w-full py-3 bg-brand-500 text-white rounded-xl font-bold hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20 flex items-center justify-center gap-2"
+                      >
+                        <CheckCircle size={18} />
+                        Approuver
+                      </button>
+                      <button
+                        onClick={() => handleUpdateStatus(request.id, 'REFUSE')}
+                        className="w-full py-3 bg-white border border-red-200 text-red-500 rounded-xl font-bold hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+                      >
+                        <XCircle size={18} />
+                        Refuser
+                      </button>
+                    </>
                   )}
-                  {request.statut === 'EN_COURS' && (
-                    <button className="w-full py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all shadow-lg shadow-green-500/20">
+                  {(request.statut === 'APPROUVE' || request.statut === 'EN_COURS') && (
+                    <button
+                      onClick={() => handleUpdateStatus(request.id, 'TERMINE')}
+                      className="w-full py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all shadow-lg shadow-green-500/20 flex items-center justify-center gap-2"
+                    >
+                      <CheckCircle size={18} />
                       Marquer terminé
                     </button>
                   )}
@@ -105,7 +167,7 @@ const MaintenanceOwner = () => {
             </CardBody>
           </Card>
         ))}
-        
+
         {requests.length === 0 && !loading && (
           <div className="text-center py-20 bg-gray-50 rounded-[40px] border-2 border-dashed border-gray-200">
             <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">

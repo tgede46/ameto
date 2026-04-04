@@ -17,6 +17,8 @@ class StatusBien(models.TextChoices):
     LOUE = 'LOUE', _('Loué')
     VACANT = 'VACANT', _('Vacant')
     VENDRE = 'VENDRE', _('À vendre')
+    SOUS_COMPROMIS = 'SOUS_COMPROMIS', _('Sous compromis')
+    VENDU = 'VENDU', _('Vendu')
     EN_TRAVAUX = 'EN_TRAVAUX', _('En travaux')
 
 
@@ -49,6 +51,12 @@ class PrioriteMaintenance(models.TextChoices):
     MOYENNE = 'MOYENNE', _('Moyenne')
     HAUTE = 'HAUTE', _('Haute')
     URGENT = 'URGENT', _('Urgent')
+
+
+class StatusCandidature(models.TextChoices):
+    EN_ATTENTE = 'EN_ATTENTE', _('En attente')
+    ACCEPTE = 'ACCEPTE', _('Acceptée')
+    REFUSE = 'REFUSE', _('Refusée')
 
 
 # ─────────────────────────────────────────────
@@ -168,6 +176,7 @@ class Bien(models.Model):
     )
     equipements = models.JSONField(
         default=list,
+        blank=True,
         verbose_name=_('Équipements'),
         help_text=_("Ex : ['ascenseur', 'climatisation', 'parking']"),
     )
@@ -575,10 +584,10 @@ class PhotoBien(models.Model):
     class Meta:
         verbose_name = _('Photo du bien')
         verbose_name_plural = _('Photos du bien')
-        ordering = ['bien', 'ordre']
+        ordering = ['bien', 'id']
 
     def __str__(self):
-        return f"Photo #{self.ordre} — {self.bien.adresse}"
+        return f"Photo — {self.bien.adresse}"
 
 
 # ─────────────────────────────────────────────
@@ -637,10 +646,10 @@ class VideoBien(models.Model):
     class Meta:
         verbose_name = _('Vidéo du bien')
         verbose_name_plural = _('Vidéos du bien')
-        ordering = ['bien', 'ordre']
+        ordering = ['bien', 'id']
 
     def __str__(self):
-        return f"Vidéo #{self.ordre} — {self.bien.adresse}"
+        return f"Vidéo — {self.bien.adresse}"
 
 
 # ─────────────────────────────────────────────
@@ -673,6 +682,21 @@ class Maintenance(models.Model):
         blank=True,
         verbose_name=_('Coût estimé (CFA)'),
     )
+    justificatif = models.ImageField(
+        upload_to='maintenances/justificatifs/%Y/%m/',
+        null=True,
+        blank=True,
+        verbose_name=_('Justificatif (photo/reçu)'),
+    )
+    justificatif_commentaire = models.TextField(
+        blank=True,
+        verbose_name=_('Commentaire justificatif'),
+    )
+    date_envoi_justificatif = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('Date d\'envoi du justificatif'),
+    )
     date_signalement = models.DateTimeField(auto_now_add=True)
 
     # ─── Relations ───
@@ -699,3 +723,43 @@ class Maintenance(models.Model):
 
     def __str__(self):
         return f"Maintenance #{self.id} - {self.titre} ({self.bien.adresse})"
+
+
+# ─────────────────────────────────────────────
+# MODÈLE : Candidature
+# ─────────────────────────────────────────────
+
+class Candidature(models.Model):
+    """
+    Candidature d'un locataire pour un bien.
+    """
+    bien = models.ForeignKey(
+        'biens.Bien',
+        on_delete=models.CASCADE,
+        related_name='candidatures',
+        verbose_name=_('Bien'),
+    )
+    locataire = models.ForeignKey(
+        'utilisateur.Locataire',
+        on_delete=models.CASCADE,
+        related_name='candidatures',
+        verbose_name=_('Locataire'),
+    )
+    message = models.TextField(blank=True, verbose_name=_('Message'))
+    statut = models.CharField(
+        max_length=20,
+        choices=StatusCandidature.choices,
+        default=StatusCandidature.EN_ATTENTE,
+        verbose_name=_('Statut'),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('Candidature')
+        verbose_name_plural = _('Candidatures')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Candidature #{self.id} - {self.locataire} ({self.bien.adresse})"
+

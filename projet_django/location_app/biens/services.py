@@ -13,6 +13,89 @@ from .models import (
 from notification.models import Notification, TypeNotification
 
 
+import io
+from django.core.files.base import ContentFile
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.units import cm
+
+class QuittanceService:
+    """Gestion de la génération des PDFs de quittance."""
+
+    @staticmethod
+    def generer_pdf(quittance):
+        """Génère le fichier PDF pour une quittance et l'enregistre."""
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
+        
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'TitleStyle',
+            parent=styles['Heading1'],
+            fontSize=18,
+            alignment=1, # Center
+            spaceAfter=20,
+            textColor=colors.HexColor('#FF385C')
+        )
+        
+        elements = []
+        
+        # Titre
+        elements.append(Paragraph("QUITTANCE DE LOYER", title_style))
+        elements.append(Spacer(1, 1*cm))
+        
+        # Infos générales
+        paiement = quittance.paiement
+        bail = paiement.bail
+        bien = bail.bien
+        locataire = paiement.locataire
+        proprietaire = bien.proprietaire
+        
+        data = [
+            [Paragraph(f"<b>Propriétaire :</b><br/>{proprietaire.prenom} {proprietaire.nom}<br/>{proprietaire.adresse or ''}", styles['Normal']),
+             Paragraph(f"<b>Locataire :</b><br/>{locataire.prenom} {locataire.nom}<br/>{bien.adresse}", styles['Normal'])]
+        ]
+        
+        t = Table(data, colWidths=[8*cm, 8*cm])
+        t.setStyle(TableStyle([
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('LEFTPADDING', (0,0), (-1,-1), 0),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 1*cm))
+        
+        # Corps de la quittance
+        texte_corps = f"""
+        Je soussigné, {proprietaire.prenom} {proprietaire.nom}, propriétaire du logement situé au <b>{bien.adresse}</b>, 
+        déclare avoir reçu de la part de M./Mme {locataire.prenom} {locataire.nom}, la somme de :
+        <br/><br/>
+        <font size="14"><b>{paiement.montant} CFA</b></font>
+        <br/><br/>
+        au titre du paiement du loyer et des charges pour la période du <b>{paiement.date_paiement}</b>.
+        <br/><br/>
+        Référence du paiement : <b>{paiement.reference}</b>
+        <br/>
+        Date d'émission : {quittance.date_emission}
+        """
+        elements.append(Paragraph(texte_corps, styles['Normal']))
+        elements.append(Spacer(1, 2*cm))
+        
+        # Signature
+        elements.append(Paragraph("<b>Signature du propriétaire / Mandataire</b>", styles['Normal']))
+        elements.append(Spacer(1, 1*cm))
+        elements.append(Paragraph("__________________________", styles['Normal']))
+        
+        # Génération effective
+        doc.build(elements)
+        
+        # Sauvegarde du fichier
+        filename = f"quittance_{paiement.reference}_{quittance.id}.pdf"
+        quittance.fichier_pdf.save(filename, ContentFile(buffer.getvalue()), save=True)
+        buffer.close()
+        return quittance
+
 class BienService:
     """Gestion des biens immobiliers."""
 

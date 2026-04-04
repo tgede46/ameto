@@ -5,12 +5,36 @@ export const fetchProperties = createAsyncThunk(
   'properties/fetchProperties',
   async (role, { rejectWithValue }) => {
     try {
-      const response = role === 'owner' 
-        ? await api.get('biens/mes-biens/') 
+      const response = role === 'owner'
+        ? await api.get('biens/mes-biens/')
         : await api.get('biens/');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Erreur lors du chargement des biens');
+    }
+  }
+);
+
+export const fetchPropertyById = createAsyncThunk(
+  'properties/fetchPropertyById',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`biens/${id}/`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Erreur lors du chargement du bien');
+    }
+  }
+);
+
+export const editProperty = createAsyncThunk(
+  'properties/editProperty',
+  async ({ id, propertyData }, { rejectWithValue }) => {
+    try {
+      const response = await api.patch(`biens/${id}/`, propertyData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Erreur lors de la modification du bien');
     }
   }
 );
@@ -68,6 +92,7 @@ export const uploadPropertyPhoto = createAsyncThunk(
   'properties/uploadPropertyPhoto',
   async ({ propertyId, photoData }, { rejectWithValue }) => {
     try {
+      // Let the browser set multipart boundaries automatically for FormData.
       const response = await api.post(`biens/${propertyId}/photos/`, photoData);
       return response.data;
     } catch (error) {
@@ -95,7 +120,7 @@ const propertySlice = createSlice({
     addProperty: (state, action) => {
       state.properties.push(action.payload);
     },
-    updateProperty: (state, action) => {
+    updatePropertyInState: (state, action) => {
       const index = state.properties.findIndex(p => p.id === action.payload.id);
       if (index !== -1) state.properties[index] = action.payload;
     },
@@ -138,5 +163,5 @@ const propertySlice = createSlice({
   },
 });
 
-export const { setProperties, addProperty, updateProperty, deleteProperty } = propertySlice.actions;
+export const { setProperties, addProperty, updatePropertyInState, deleteProperty } = propertySlice.actions;
 export default propertySlice.reducer;

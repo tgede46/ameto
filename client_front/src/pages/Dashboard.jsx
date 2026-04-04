@@ -1,3 +1,4 @@
+import { toApiMediaUrl } from '../services/api';
 import {
   Home, CreditCard, FileText, MessageSquare, Settings,
   FileDown, CheckCircle, LogOut, Bell, Heart, MapPin,
@@ -8,20 +9,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { logout, fetchUserPayments, fetchUserCandidatures } from "../store/userSlice";
+import { logout, fetchUserPayments, fetchUserCandidatures, fetchNotifications, fetchUnreadNotifications, fetchMaintenances, fetchProfile } from "../store/userSlice";
 import logo from '../assets/logo_ameto.png';
 import DashboardEmptyState from "../components/DashboardEmptyState";
-import {
-  Chart as ChartJS,
-  CategoryScale, LinearScale, PointElement,
-  LineElement, BarElement, Title, Tooltip, Legend, Filler
-} from 'chart.js';
-import { Line, Bar } from 'react-chartjs-2';
-
-ChartJS.register(
-  CategoryScale, LinearScale, PointElement,
-  LineElement, BarElement, Title, Tooltip, Legend, Filler
-);
+// ChartJS imports removed
 
 /* ── DATA ── */
 const defaultUser = {
@@ -31,62 +22,31 @@ const defaultUser = {
 };
 
 const navItems = [
-  { id: 'home',        label: 'Mon Foyer',      icon: Home,           to: '/dashboard' },
-  { id: 'payment',     label: 'Paiements',      icon: CreditCard,     to: '/payment' },
-  { id: 'dossier',     label: 'Mon Dossier',    icon: FileText,       to: '/dossier' },
-  { id: 'maintenance', label: 'Maintenance',    icon: Wrench,         to: '/maintenance' },
-  { id: 'messages',    label: 'Messages',       icon: MessageSquare,  to: '/messages' },
-  { id: 'favorites',   label: 'Favoris',        icon: Heart,          to: '/favorites' },
+  { id: 'home', label: 'Mon Foyer', icon: Home, to: '/dashboard' },
+  { id: 'payment', label: 'Paiements', icon: CreditCard, to: '/payment' },
+  { id: 'dossier', label: 'Mon Dossier', icon: FileText, to: '/dossier' },
+  { id: 'maintenance', label: 'Maintenance', icon: Wrench, to: '/maintenance' },
+  { id: 'messages', label: 'Messages', icon: MessageSquare, to: '/messages' },
+  { id: 'favorites', label: 'Favoris', icon: Heart, to: '/favorites' },
 ];
 
 const docs = [
-  { name: "Quittance_Mars_2026.pdf",    size: "1.2 MB", date: "05 Mars" },
-  { name: "Bail_Amétô_Afi.pdf",      size: "4.5 MB", date: "01 Avr 2024" },
-  { name: "Etat_Lieux_Entree.pdf",      size: "3.1 MB", date: "01 Avr 2024" },
+  { name: "Quittance_Mars_2026.pdf", size: "1.2 MB", date: "05 Mars" },
+  { name: "Bail_Amétô_Afi.pdf", size: "4.5 MB", date: "01 Avr 2024" },
+  { name: "Etat_Lieux_Entree.pdf", size: "3.1 MB", date: "01 Avr 2024" },
 ];
 
-const barData = {
-  labels: ['Charges', 'Eau', 'Électricité', 'Autres'],
-  datasets: [{
-    data: [15000, 8000, 25000, 5000],
-    backgroundColor: ['#FF385C', '#F59E0B', '#3B82F6', '#10B981'],
-    borderRadius: 8,
-    borderSkipped: false,
-  }],
-};
-
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-      titleColor: '#1F2937',
-      bodyColor: '#6B7280',
-      borderColor: 'rgba(255, 255, 255, 0.5)',
-      borderWidth: 1,
-      padding: 12,
-      displayColors: false,
-      callbacks: { label: (ctx) => `${ctx.parsed.y.toLocaleString('fr-FR')} FCFA` }
-    }
-  },
-  scales: {
-    y: { display: false },
-    x: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 11 }, color: '#6B7280' } }
-  }
-};
+// Unused chart data removed
 
 /* ── SIDEBAR ITEM ── */
 function NavItem({ item, active }) {
   return (
     <Link
       to={item.to}
-      className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold text-[15px] transition-all duration-300 relative overflow-hidden group ${
-        active 
-          ? 'text-[#222222] shadow-[0_4px_16px_rgba(0,0,0,0.06)] backdrop-blur-md'
-          : 'text-[#717171] hover:text-[#222222] hover:bg-white/40'
-      }`}
+      className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold text-[15px] transition-all duration-300 relative overflow-hidden group ${active
+        ? 'text-[#222222] shadow-[0_4px_16px_rgba(0,0,0,0.06)] backdrop-blur-md'
+        : 'text-[#717171] hover:text-[#222222] hover:bg-white/40'
+        }`}
     >
       <item.icon size={20} strokeWidth={active ? 2.5 : 2} className="flex-shrink-0 relative z-10" />
       <span className="relative z-10">{item.label}</span>
@@ -105,35 +65,28 @@ function NavItem({ item, active }) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { profile, payments, candidatures, loading } = useSelector((state) => state.user);
+  const { profile, payments, candidatures, maintenanceRequests, loading } = useSelector((state) => state.user);
   const [activeNav, setActiveNav] = useState('home');
   const [showNotif, setShowNotif] = useState(true);
 
   const bail = profile?.bail_actif;
   const isVerified = profile?.is_verified;
+  const fullName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim();
+  const displayName = fullName || profile?.username || profile?.email?.split('@')[0] || 'vous';
 
   const filteredNavItems = navItems.filter(item => {
-    if (!isVerified && (item.id === 'payment' || item.id === 'maintenance')) return false;
+    if (!isVerified && item.id === 'maintenance') return false;
     return true;
   });
-  const lineData = {
-    labels: payments.length > 0 ? payments.map(p => new Date(p.date_paiement).toLocaleDateString('fr-FR', { month: 'short' })).reverse() : ['Aucun'],
-    datasets: [{
-      fill: true,
-      data: payments.length > 0 ? payments.map(p => parseFloat(p.montant)).reverse() : [0],
-      borderColor: '#FF385C',
-      backgroundColor: 'rgba(255,56,92,0.15)',
-      tension: 0.4,
-      pointRadius: 4,
-      pointBackgroundColor: '#FF385C',
-      pointBorderColor: '#fff',
-      pointBorderWidth: 2,
-    }],
-  };
+  // lineData removed
 
   useEffect(() => {
+    dispatch(fetchProfile());
     dispatch(fetchUserPayments());
     dispatch(fetchUserCandidatures());
+    dispatch(fetchNotifications());
+    dispatch(fetchUnreadNotifications());
+    dispatch(fetchMaintenances());
   }, [dispatch]);
 
   const handleLogout = () => {
@@ -141,12 +94,37 @@ export default function Dashboard() {
     navigate('/login');
   };
 
+  // Calculer l'état des paiements
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const hasPaidCurrentMonth = payments.some(p => {
+    const pDate = new Date(p.date_paiement);
+    return pDate.getMonth() === currentMonth && pDate.getFullYear() === currentYear && p.statut === 'VALIDE';
+  });
+  const hasPendingPayment = payments.some(p => p.statut === 'EN_ATTENTE' || p.statut === 'A_VALIDER');
+
+  // Candidature acceptée mais bail non encore actif
+  const acceptedCandidature = candidatures.find(c => c.statut === 'ACCEPTE');
+  // Vérifier s'il y a un paiement en attente pour cette candidature spécifique (ou juste un paiement global en attente)
+  const hasPendingCaution = hasPendingPayment && !bail;
+
+  const pendingMaintenanceCount = maintenanceRequests.filter(m => m.statut === 'EN_ATTENTE').length;
+
   const userStats = [
-    { label: "Paiements à jour", value: payments.filter(p => p.statut === 'CONFIRME').length > 0 ? "100%" : "0%", icon: CheckCircle, color: "text-[#10B981]", bg: "bg-[#10B981]/10" },
+    {
+      label: "Paiements à jour",
+      value: hasPaidCurrentMonth ? "100%" : (hasPendingPayment ? "Vérif." : "0%"),
+      icon: CheckCircle,
+      color: hasPaidCurrentMonth ? "text-[#10B981]" : "text-orange-500",
+      bg: hasPaidCurrentMonth ? "bg-[#10B981]/10" : "bg-orange-500/10"
+    },
     { label: "Candidatures", value: candidatures.length, icon: FileText, color: "text-blue-500", bg: "bg-blue-500/10" },
     { label: "Paiements envoyés", value: payments.length, icon: CreditCard, color: "text-[#FF385C]", bg: "bg-[#FF385C]/10" },
-    { label: "Alertes actives", value: "0", icon: AlertCircle, color: "text-[#E9A319]", bg: "bg-[#E9A319]/10" },
+    { label: "Alertes actives", value: (hasPaidCurrentMonth ? 0 : 1) + pendingMaintenanceCount, icon: AlertCircle, color: "text-[#E9A319]", bg: "bg-[#E9A319]/10" },
   ];
+
+  // Cacher la notification si déjà payé ce mois-ci
+  const shouldShowBanner = showNotif && !hasPaidCurrentMonth && !hasPendingPayment;
 
   if (loading) {
     return (
@@ -158,7 +136,7 @@ export default function Dashboard() {
 
   return (
     <div className="h-screen w-full relative bg-[#eef1f6] flex flex-col md:flex-row text-[#222222] font-sans overflow-hidden">
-      
+
       {/* ── Liquid Glass Animated Background blobs ── */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-brand-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob pointer-events-none z-0" />
       <div className="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-blue-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000 pointer-events-none z-0" />
@@ -177,8 +155,8 @@ export default function Dashboard() {
 
         {/* User card (Glassy) */}
         <div className="px-6 py-5 mb-2 flex-shrink-0">
-          <motion.div 
-            whileHover={{ scale: 1.02 }} 
+          <motion.div
+            whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.3 }}
             className="flex items-center gap-4 p-4 bg-white/50 backdrop-blur-md rounded-[24px] border border-white/60 shadow-[0_8px_24px_rgba(0,0,0,0.04)]"
           >
@@ -256,22 +234,22 @@ export default function Dashboard() {
               >
                 Tableau de bord
               </motion.h1>
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.1 }}
                 className="text-gray-600 mt-2 font-medium text-lg"
               >
-                Ravi de vous revoir, <span className="font-bold">{profile?.first_name || 'Utilisateur'}</span>
+                Ravi de vous revoir, <span className="font-bold">{displayName}</span>
               </motion.p>
             </div>
             <div className="flex items-center gap-3">
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                 className="relative p-3.5 bg-white/60 backdrop-blur-md rounded-[20px] border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all"
               >
                 <Bell size={20} className="text-[#222222]" />
                 <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-[#FF385C] rounded-full border-[2.5px] border-[#eef1f6] shadow-sm" />
               </motion.button>
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                 className="p-3.5 bg-white/60 backdrop-blur-md rounded-[20px] border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.06)] transition-all"
               >
@@ -282,12 +260,52 @@ export default function Dashboard() {
 
           {/* Conditional Rendering: Empty State or Tenant Dashboard */}
           {!bail ? (
-            <DashboardEmptyState />
+            <div className="space-y-12">
+              {acceptedCandidature && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={`bg-gradient-to-br ${hasPendingCaution ? 'from-amber-500 to-orange-600' : 'from-emerald-500 to-teal-600'} rounded-[32px] p-8 text-white shadow-2xl shadow-emerald-500/20 relative overflow-hidden`}
+                >
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
+                  <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                    <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center shrink-0 border border-white/20">
+                      {hasPendingCaution ? <Clock size={40} className="text-white animate-pulse" /> : <CheckCircle size={40} className="text-white" />}
+                    </div>
+                    <div className="flex-1 text-center md:text-left">
+                      <h3 className="text-2xl font-black mb-2 tracking-tight">
+                        {hasPendingCaution ? "VÉRIFICATION EN COURS ⏳" : "FÉLICITATIONS ! 🎊"}
+                      </h3>
+                      <p className={`${hasPendingCaution ? 'text-amber-50' : 'text-emerald-50'} font-bold max-w-lg`}>
+                        {hasPendingCaution 
+                          ? "Votre règlement de caution a bien été reçu et est en cours de validation par l'administration. Votre bail sera activé très prochainement."
+                          : <>Votre candidature pour le bien à <span className="underline decoration-white/40">{acceptedCandidature.bien_adresse}</span> a été acceptée par le propriétaire ! Veuillez régler la caution pour activer votre bail.</>
+                        }
+                      </p>
+                    </div>
+                    {!hasPendingCaution && (
+                      <Link
+                        to="/payment"
+                        state={{
+                          amount: acceptedCandidature.bien_loyer * 3 || 450000,
+                          propertyId: acceptedCandidature.bien,
+                          propertyTitle: acceptedCandidature.bien_adresse
+                        }}
+                        className="px-10 py-5 bg-white text-emerald-600 font-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/10 text-sm uppercase tracking-widest whitespace-nowrap"
+                      >
+                        Régler la caution
+                      </Link>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+              <DashboardEmptyState />
+            </div>
           ) : (
             <>
               {/* Notification Alert */}
               <AnimatePresence>
-                {showNotif && (
+                {shouldShowBanner && (
                   <motion.div
                     initial={{ opacity: 0, y: -20, rotateX: 60 }}
                     animate={{ opacity: 1, y: 0, rotateX: 0 }}
@@ -305,7 +323,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Link to="/payment" state={{ amount: bail.bien.prix, propertyId: bail.bien.id, propertyTitle: bail.bien.titre }} className="bg-[#222222] text-white font-bold px-6 py-2.5 rounded-xl hover:bg-black transition-colors shadow-lg shadow-gray-900/20 active:scale-95 duration-200 text-sm">
+                      <Link to="/payment" state={{ amount: bail.bien.prix, propertyId: bail.bien.id, propertyTitle: bail.bien.titre, bailId: bail.id }} className="bg-[#222222] text-white font-bold px-6 py-2.5 rounded-xl hover:bg-black transition-colors shadow-lg shadow-gray-900/20 active:scale-95 duration-200 text-sm">
                         Payer
                       </Link>
                       <button onClick={() => setShowNotif(false)} className="p-2.5 bg-black/5 hover:bg-black/10 rounded-xl transition-colors">
@@ -355,7 +373,7 @@ export default function Dashboard() {
                     <div className="flex flex-col md:flex-row relative">
                       <div className="md:w-5/12 h-[220px] md:h-auto overflow-hidden relative m-3 md:m-4 rounded-[24px]">
                         <img
-                          src={bail.bien.photos.length > 0 ? `http://localhost:8000${bail.bien.photos[0].image}` : "/outils/M1.png"}
+                          src={bail.bien.photos.length > 0 ? (toApiMediaUrl(bail.bien.photos[0].image_url || bail.bien.photos[0].image) || "/outils/M1.png") : "/outils/M1.png"}
                           className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
                         />
                         <div className="absolute top-4 left-4">
@@ -377,14 +395,17 @@ export default function Dashboard() {
                             </div>
                           </div>
                           <p className="text-gray-600 text-[15px] font-medium leading-relaxed bg-white/40 p-4 rounded-[20px] border border-white/60 shadow-inner">
-                              Bail en cours jusqu'au <strong className="text-[#222222] font-black">{new Date(bail.date_fin).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
-                              Vous bénéficiez de l'assurance Premium Amétô incluse.
-                            </p>
+                            Bail en cours jusqu'au <strong className="text-[#222222] font-black">{new Date(bail.date_fin).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
+                            Vous bénéficiez de l'assurance Premium Amétô incluse.
+                          </p>
                         </div>
                         <div className="flex flex-wrap gap-3 mt-6">
-                          <button className="bg-white border border-[#EBEBEB] text-[#222222] font-bold text-sm py-3 px-6 rounded-2xl shadow-sm hover:shadow-md hover:border-gray-300 transition-all active:scale-95">
+                          <Link
+                            to={`/property/${bail.bien.id}`}
+                            className="bg-white border border-[#EBEBEB] text-[#222222] font-bold text-sm py-3 px-6 rounded-2xl shadow-sm hover:shadow-md hover:border-gray-300 transition-all active:scale-95"
+                          >
                             Détails du bail
-                          </button>
+                          </Link>
                           <Link to="/maintenance" className="bg-black/5 border border-black/5 text-[#222222] font-bold text-sm py-3 px-6 rounded-2xl hover:bg-black/10 transition-all active:scale-95">
                             <Wrench size={16} className="inline mr-2 opacity-70" />Maintenance
                           </Link>
@@ -393,50 +414,7 @@ export default function Dashboard() {
                     </div>
                   </motion.div>
 
-                  {/* Charts (Glassmorphism blocks) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <motion.div
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: 0.3 }}
-                      className="bg-white/50 backdrop-blur-[24px] rounded-[32px] border border-white/60 p-7 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
-                    >
-                      <div className="flex justify-between items-start mb-6">
-                        <div>
-                          <h3 className="text-lg font-black text-[#222222] tracking-tight">Historique loyers</h3>
-                          <p className="text-xs text-[#717171] font-bold uppercase tracking-wider mt-1">6 derniers mois</p>
-                        </div>
-                        <div className="flex items-center gap-1.5 bg-[#10B981]/10 text-[#10B981] px-3 py-1.5 rounded-xl border border-emerald-500/20">
-                          <TrendingUp size={16} />
-                          <span className="text-[11px] font-black uppercase">Stable</span>
-                        </div>
-                      </div>
-                      <div className="h-44 w-full">
-                        <Line data={lineData} options={chartOptions} />
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: 0.4 }}
-                      className="bg-white/50 backdrop-blur-[24px] rounded-[32px] border border-white/60 p-7 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
-                    >
-                      <div className="flex justify-between items-start mb-6">
-                        <div>
-                          <h3 className="text-lg font-black text-[#222222] tracking-tight">Dépenses annexes</h3>
-                          <p className="text-xs text-[#717171] font-bold uppercase tracking-wider mt-1">Répartition actuelle</p>
-                        </div>
-                        <div className="flex items-center gap-1.5 bg-blue-500/10 text-blue-600 px-3 py-1.5 rounded-xl border border-blue-500/20">
-                          <ArrowUpRight size={16} />
-                          <span className="text-[11px] font-black uppercase">53 000 F</span>
-                        </div>
-                      </div>
-                      <div className="h-44 w-full">
-                        <Bar data={barData} options={chartOptions} />
-                      </div>
-                    </motion.div>
-                  </div>
+                  {/* Charts removed for a simpler UI */}
 
                   {/* Payment history */}
                   <motion.div
@@ -463,17 +441,17 @@ export default function Dashboard() {
                             className="flex items-center justify-between p-5 bg-white/60 backdrop-blur-md rounded-[20px] border border-white/80 shadow-sm hover:shadow-md cursor-pointer group"
                           >
                             <div className="flex items-center gap-4">
-                              <div className={`w-12 h-12 ${pay.statut === 'CONFIRME' ? 'bg-[#10B981]/10' : 'bg-orange-100'} border rounded-2xl shadow-inner flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                                {pay.statut === 'CONFIRME' ? <CheckCircle size={24} className="text-[#10B981]" /> : <Loader2 className="animate-spin text-orange-600" size={24} />}
+                              <div className={`w-12 h-12 ${['PAYE', 'VALIDE'].includes(pay.statut) ? 'bg-[#10B981]/10' : 'bg-orange-100'} border rounded-2xl shadow-inner flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                                {['PAYE', 'VALIDE'].includes(pay.statut) ? <CheckCircle size={24} className="text-[#10B981]" /> : <Loader2 className="animate-spin text-orange-600" size={24} />}
                               </div>
                               <div>
-                                <p className="font-extrabold text-[#222222] text-[15px]">{pay.methode}</p>
+                                <p className="font-extrabold text-[#222222] text-[15px]">{pay.reference || 'Paiement'}</p>
                                 <p className="text-xs font-bold text-[#717171]">{new Date(pay.date_paiement).toLocaleDateString()}</p>
                               </div>
                             </div>
                             <div className="text-right">
                               <p className="font-black text-[#222222] text-[15px]">{new Intl.NumberFormat('fr-FR').format(pay.montant)} CFA</p>
-                              <p className={`text-[10px] font-black uppercase tracking-widest ${pay.statut === 'CONFIRME' ? 'text-[#10B981]' : 'text-orange-600'}`}>{pay.statut}</p>
+                              <p className={`text-[10px] font-black uppercase tracking-widest ${['PAYE', 'VALIDE'].includes(pay.statut) ? 'text-[#10B981]' : pay.statut === 'EN_RETARD' || pay.statut === 'IMPAYE' ? 'text-red-600' : 'text-orange-600'}`}>{pay.statut_display || pay.statut}</p>
                             </div>
                           </motion.div>
                         ))
@@ -497,20 +475,22 @@ export default function Dashboard() {
                     <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/20 rounded-full blur-[80px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
                     <div className="absolute bottom-[-10%] left-[-10%] w-[200px] h-[200px] bg-black/20 rounded-full blur-[40px] pointer-events-none" />
                     <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none" />
-                    
+
                     <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-6 bg-black/20 w-max px-4 py-2 rounded-2xl backdrop-blur-md border border-white/10">
                         <Calendar size={16} className="text-white" />
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white">Prochain loyer</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-white">
+                          {hasPaidCurrentMonth ? "Loyer à jour" : (hasPendingPayment ? "Paiement en attente" : "Prochain loyer")}
+                        </p>
                       </div>
                       <p className="text-4xl font-black mb-2 tracking-tight drop-shadow-md">{new Intl.NumberFormat('fr-FR').format(bail.bien.prix)} <span className="text-2xl opacity-80 font-bold">F</span></p>
                       <p className="text-sm font-bold opacity-80 mb-8 flex items-center gap-2">
-                        <span className="w-2 h-2 bg-white rounded-full shadow-[0_0_10px_white]" />
-                        À régler avant le {new Date(bail.date_fin).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
+                        <span className={`w-2 h-2 ${hasPaidCurrentMonth ? 'bg-green-400' : 'bg-white'} rounded-full shadow-[0_0_10px_white]`} />
+                        {hasPaidCurrentMonth ? "Réglement encaissé" : (hasPendingPayment ? "Validation par l'agence..." : `À régler avant le ${new Date(bail.date_fin).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`)}
                       </p>
                       <Link
                         to="/payment"
-                        state={{ amount: bail.bien.prix, propertyId: bail.bien.id, propertyTitle: bail.bien.titre }}
+                        state={{ amount: bail.bien.prix, propertyId: bail.bien.id, propertyTitle: bail.bien.titre, bailId: bail.id }}
                         className="block w-full bg-white/95 backdrop-blur-sm text-[#E61E4D] font-black py-4 rounded-[20px] text-center text-[15px] hover:bg-white hover:scale-[1.02] hover:shadow-[0_0_20px_white] active:scale-95 transition-all duration-300 shadow-xl"
                       >
                         Régler maintenant
@@ -528,10 +508,10 @@ export default function Dashboard() {
                     <h3 className="font-black text-[#222222] tracking-tight mb-5 text-lg">Actions rapides</h3>
                     <div className="grid grid-cols-2 gap-4">
                       {[
-                        { label: 'Payer loyer',    icon: CreditCard, to: '/payment', state: { amount: bail.bien.prix, propertyId: bail.bien.id, propertyTitle: bail.bien.titre }, bg: 'bg-[#FF385C]/10',  color: 'text-[#FF385C]', border: 'border-[#FF385C]/20' },
-                        { label: 'Mon dossier',    icon: FileText,   to: '/dossier',     bg: 'bg-blue-500/10',   color: 'text-blue-500', border: 'border-blue-500/20' },
-                        { label: 'Maintenance',    icon: Wrench,     to: '/maintenance', bg: 'bg-[#E9A319]/10',  color: 'text-[#E9A319]', border: 'border-amber-500/20' },
-                        { label: 'Rechercher',     icon: Search,     to: '/',            bg: 'bg-[#10B981]/10',  color: 'text-[#10B981]', border: 'border-emerald-500/20' },
+                        { label: 'Payer loyer', icon: CreditCard, to: '/payment', state: { amount: bail.bien.prix, propertyId: bail.bien.id, propertyTitle: bail.bien.titre, bailId: bail.id }, bg: 'bg-[#FF385C]/10', color: 'text-[#FF385C]', border: 'border-[#FF385C]/20' },
+                        { label: 'Mon dossier', icon: FileText, to: '/dossier', bg: 'bg-blue-500/10', color: 'text-blue-500', border: 'border-blue-500/20' },
+                        { label: 'Maintenance', icon: Wrench, to: '/maintenance', bg: 'bg-[#E9A319]/10', color: 'text-[#E9A319]', border: 'border-amber-500/20' },
+                        { label: 'Rechercher', icon: Search, to: '/', bg: 'bg-[#10B981]/10', color: 'text-[#10B981]', border: 'border-emerald-500/20' },
                       ].map((action, i) => (
                         <Link
                           key={i}
@@ -548,28 +528,6 @@ export default function Dashboard() {
                     </div>
                   </motion.div>
 
-                  {/* Upcoming Visits */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.5 }}
-                    className="bg-white/50 backdrop-blur-[24px] rounded-[32px] border border-white/60 p-7 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
-                  >
-                    <h3 className="font-black text-[#222222] tracking-tight mb-5 text-lg">Visites planifiées</h3>
-                    <div className="bg-white/80 rounded-2xl p-4 border border-[#EBEBEB] shadow-sm flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group">
-                      <div className="bg-[#fff0f1] p-3 rounded-xl text-[#FF385C] group-hover:scale-110 transition-transform">
-                          <Calendar size={20} />
-                      </div>
-                      <div>
-                          <p className="font-bold text-[#222222] text-sm">Villa avec Piscine</p>
-                          <p className="text-xs text-[#717171] mt-1">Baguida, Lomé</p>
-                          <div className="flex gap-3 mt-3 text-xs font-semibold">
-                              <span className="bg-[#EBEBEB]/50 px-2 py-1 rounded-md text-[#222222]">12 Avril 2026</span>
-                              <span className="bg-[#EBEBEB]/50 px-2 py-1 rounded-md text-[#222222]">14:30</span>
-                          </div>
-                      </div>
-                    </div>
-                  </motion.div>
 
                   {/* Documents (Glass) */}
                   <motion.div
@@ -586,10 +544,10 @@ export default function Dashboard() {
                     </div>
                     <div className="space-y-4">
                       {docs.map((doc, i) => (
-                        <motion.div 
+                        <motion.div
                           whileHover={{ scale: 1.02 }}
                           transition={{ duration: 0.2 }}
-                          key={i} 
+                          key={i}
                           className="flex items-center justify-between p-4 bg-white/60 backdrop-blur-md rounded-[20px] group border border-white/80 hover:border-white shadow-sm hover:shadow-lg cursor-pointer"
                         >
                           <div className="flex items-center gap-4 min-w-0">

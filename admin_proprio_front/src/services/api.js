@@ -1,13 +1,24 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api/';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/').replace(/\/?$/, '/');
 
 const api = axios.create({
   baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
+
+const API_ORIGIN = (() => {
+  try {
+    return new URL(API_URL, window.location.origin).origin;
+  } catch {
+    return 'http://localhost:8000';
+  }
+})();
+
+export const toApiMediaUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${API_ORIGIN}${url.startsWith('/') ? '' : '/'}${url}`;
+};
 
 // Intercepteur pour ajouter le token JWT à chaque requête
 api.interceptors.request.use(

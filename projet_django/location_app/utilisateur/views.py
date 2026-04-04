@@ -180,7 +180,7 @@ class AuthViewSet(viewsets.ViewSet):
             permission_classes=[permissions.IsAuthenticated])
     def profile(self, request):
         """
-        GET /api/auth/profile/      → Retourne le profil de l'utilisateur connecté.
+        GET /api/auth/profile/      → Retourne le profil spécialisé (selon le rôle).
         PATCH /api/auth/profile/    → Met à jour le profil de l'utilisateur connecté.
         """
         user = request.user
@@ -198,7 +198,13 @@ class AuthViewSet(viewsets.ViewSet):
                 return Response(serializer.data)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
-        serializer = UtilisateurSerializer(user)
+        # GET : Renvoyer les données spécialisées
+        if user.role == 'PROPRIETAIRE' and hasattr(user, 'proprietaire'):
+            serializer = ProprietaireSerializer(user.proprietaire)
+        elif user.role == 'LOCATAIRE' and hasattr(user, 'locataire'):
+            serializer = LocataireSerializer(user.locataire)
+        else:
+            serializer = UtilisateurSerializer(user)
         return Response(serializer.data)
 
     @action(detail=False, methods=['post'], url_path='token/refresh', permission_classes=[permissions.AllowAny])

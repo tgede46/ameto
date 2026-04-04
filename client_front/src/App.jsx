@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { Toaster } from 'react-hot-toast';
 import { AnimatePresence } from "framer-motion";
 import { lazy, Suspense, useEffect } from "react";
 import { useDispatch } from "react-redux";
@@ -44,7 +45,7 @@ function AnimatedRoutes() {
     };
     fetchProfile();
   }, [dispatch]);
-  
+
   return (
     <Suspense fallback={<PageLoader />}>
       <AnimatePresence mode="wait">
@@ -66,9 +67,12 @@ function AnimatedRoutes() {
   );
 }
 
+
+
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" reverseOrder={false} />
       <AnimatedRoutes />
     </BrowserRouter>
   );

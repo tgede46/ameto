@@ -31,11 +31,11 @@ class QuittanceAdmin(admin.ModelAdmin):
 
 @admin.register(PhotoBien)
 class PhotoBienAdmin(admin.ModelAdmin):
-    list_display = ('bien', 'ordre', 'created_at')
+    list_display = ('bien', 'created_at')
 
 @admin.register(VideoBien)
 class VideoBienAdmin(admin.ModelAdmin):
-    list_display = ('bien', 'titre', 'ordre')
+    list_display = ('bien', 'titre', 'created_at')
 
 @admin.register(Maintenance)
 class MaintenanceAdmin(admin.ModelAdmin):

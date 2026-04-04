@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchConversations, fetchConversation, sendMessage } from '../../store/slices/notificationSlice';
-import Card, { CardBody } from '../../components/common/Card';
+import Card, { CardBody, CardHeader } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Send, Search, User, MessageSquare, Phone, Info, MoreVertical } from 'lucide-react';
@@ -37,7 +37,7 @@ const ChatOwner = () => {
       await dispatch(sendMessage({
         destinataire: activeConversation,
         contenu: msgContent
-      }));
+      })).unwrap();
       setMsgContent('');
     } catch (err) {
       toast.error('Erreur lors de l\'envoi');
@@ -50,89 +50,96 @@ const ChatOwner = () => {
 
   const activeConvData = conversations.find(c => c.other_user_id === activeConversation);
 
+  const getInitial = (name) => {
+    return name?.[0]?.toUpperCase() || '?';
+  };
+
   return (
     <div className="h-[calc(100vh-140px)] flex gap-6 animate-fade-in">
       {/* Sidebar - Conversations */}
-      <div className="w-80 flex flex-col gap-4">
-        <div className="relative">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Rechercher un contact..." 
-            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <aside className="w-80 flex flex-col bg-white rounded-[32px] border border-gray-100 shadow-xl overflow-hidden">
+        <div className="p-6 border-b border-gray-50">
+          <h2 className="text-xl font-black text-gray-900 mb-4 tracking-tight">Messages</h2>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Rechercher..."
+              className="w-full bg-gray-50 border-none rounded-2xl py-3 pl-12 pr-4 text-sm font-medium focus:ring-2 focus:ring-brand-500 transition-all"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
 
-        <Card className="flex-1 border-0 shadow-sm overflow-hidden flex flex-col bg-white">
-          <CardHeader className="p-4 border-b border-gray-50 bg-gray-50/50">
-            <h3 className="font-bold text-gray-900">Messages</h3>
-          </CardHeader>
-          <div className="flex-1 overflow-y-auto">
-            {filteredConversations.map(conv => (
-              <div 
+        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          {filteredConversations.length === 0 ? (
+            <p className="text-center text-gray-400 text-sm mt-10 font-bold px-4">Aucune discussion pour le moment.</p>
+          ) : (
+            filteredConversations.map(conv => (
+              <button
                 key={conv.id}
                 onClick={() => handleSelectConversation(conv.other_user_id)}
-                className={`p-4 flex items-center gap-3 cursor-pointer transition-all hover:bg-gray-50 border-b border-gray-50/50 ${activeConversation === conv.other_user_id ? 'bg-brand-50/50 border-l-4 border-l-brand-500' : ''}`}
+                className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${activeConversation === conv.other_user_id ? 'bg-brand-50 shadow-sm' : 'hover:bg-gray-50'}`}
               >
-                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 shrink-0">
-                  <User size={24} />
+                <div className="relative">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white shadow-md ${activeConversation === conv.other_user_id ? 'bg-brand-500' : 'bg-gray-300'}`}>
+                    {getInitial(conv.other_user_nom)}
+                  </div>
+                  <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-baseline">
-                    <h4 className="font-bold text-gray-900 truncate text-sm">{conv.other_user_nom}</h4>
+                <div className="flex-1 text-left min-w-0">
+                  <div className="flex justify-between items-start">
+                    <p className={`font-bold text-sm truncate ${activeConversation === conv.other_user_id ? 'text-brand-600' : 'text-gray-900'}`}>{conv.other_user_nom}</p>
                     <span className="text-[10px] text-gray-400">{conv.last_message_date ? new Date(conv.last_message_date).toLocaleDateString() : ''}</span>
                   </div>
-                  <p className="text-xs text-gray-500 truncate mt-1">{conv.last_message}</p>
+                  <p className="text-xs text-gray-500 truncate font-medium mt-1">{conv.last_message}</p>
                 </div>
                 {conv.unread_count > 0 && (
-                  <span className="w-5 h-5 bg-brand-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  <span className="w-5 h-5 bg-brand-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
                     {conv.unread_count}
                   </span>
                 )}
-              </div>
-            ))}
-            {filteredConversations.length === 0 && (
-              <div className="p-8 text-center text-gray-400 text-sm italic">
-                Aucune conversation trouvée.
-              </div>
-            )}
-          </div>
-        </Card>
-      </div>
+              </button>
+            ))
+          )}
+        </div>
+      </aside>
 
       {/* Main Chat Area */}
-      <Card className="flex-1 border-0 shadow-sm overflow-hidden flex flex-col bg-white">
+      <section className="flex-1 flex flex-col bg-white rounded-[32px] border border-gray-100 shadow-xl overflow-hidden relative">
         {activeConversation ? (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b border-gray-50 flex justify-between items-center bg-white z-10">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-brand-50 text-brand-500 rounded-xl flex items-center justify-center">
-                  <User size={20} />
+            <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-brand-500 flex items-center justify-center font-bold text-white shadow-md">
+                  {getInitial(activeConvData?.other_user_nom)}
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 text-sm">{activeConvData?.other_user_nom}</h3>
-                  <p className="text-[10px] text-brand-500 font-bold uppercase tracking-widest">{activeConvData?.other_user_role}</p>
+                  <p className="font-black text-gray-900 tracking-tight">{activeConvData?.other_user_nom}</p>
+                  <p className="text-xs font-bold text-brand-500 uppercase tracking-widest">{activeConvData?.other_user_role || 'En ligne'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-lg transition-all"><Phone size={18} /></button>
-                <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-lg transition-all"><Info size={18} /></button>
-                <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-lg transition-all"><MoreVertical size={18} /></button>
+                <button className="p-3 hover:bg-gray-50 rounded-xl text-gray-400 transition-colors"><Phone size={20} /></button>
+                <button className="p-3 hover:bg-gray-50 rounded-xl text-gray-400 transition-colors"><Info size={20} /></button>
+                <button className="p-3 hover:bg-gray-50 rounded-xl text-gray-400 transition-colors"><MoreVertical size={20} /></button>
               </div>
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/30">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F9FAFB]/30">
               {messages.map(msg => {
                 const isMe = msg.expediteur === user.id;
                 return (
                   <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[70%] p-4 rounded-2xl shadow-sm text-sm ${isMe ? 'bg-brand-500 text-white rounded-tr-none' : 'bg-white text-gray-900 rounded-tl-none'}`}>
-                      <p>{msg.contenu}</p>
-                      <p className={`text-[10px] mt-2 ${isMe ? 'text-white/70 text-right' : 'text-gray-400'}`}>
+                    <div className={`max-w-[70%] p-4 rounded-[24px] shadow-sm relative ${isMe
+                        ? 'bg-brand-500 text-white rounded-tr-none'
+                        : 'bg-white text-gray-800 rounded-tl-none border border-gray-50'
+                      }`}>
+                      <p className="text-sm font-medium leading-relaxed">{msg.contenu}</p>
+                      <p className={`text-[10px] font-bold mt-2 ${isMe ? 'text-brand-100' : 'text-gray-400'}`}>
                         {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -143,33 +150,37 @@ const ChatOwner = () => {
             </div>
 
             {/* Message Input */}
-            <div className="p-4 border-t border-gray-50 bg-white">
-              <form onSubmit={handleSendMessage} className="flex gap-3">
-                <input 
-                  type="text" 
-                  placeholder="Écrivez votre message..." 
-                  className="flex-1 px-6 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all"
+            <div className="p-6 bg-white border-t border-gray-50">
+              <form onSubmit={handleSendMessage} className="flex items-center gap-4 bg-gray-50 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-brand-500 transition-all">
+                <input
+                  type="text"
+                  placeholder="Écrivez votre message..."
+                  className="flex-1 bg-transparent border-none py-3 px-4 text-sm font-medium focus:ring-0"
                   value={msgContent}
                   onChange={(e) => setMsgContent(e.target.value)}
                 />
-                <Button type="submit" variant="primary" className="rounded-2xl w-12 h-12 flex items-center justify-center p-0 shadow-lg shadow-brand-500/20 shrink-0">
+                <button
+                  type="submit"
+                  disabled={!msgContent.trim()}
+                  className="w-12 h-12 bg-brand-500 text-white rounded-xl flex items-center justify-center hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20 active:scale-95 disabled:opacity-50"
+                >
                   <Send size={20} />
-                </Button>
+                </button>
               </form>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-12 bg-gray-50/20">
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
             <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-gray-50">
-              <MessageSquare size={48} className="text-gray-200" />
+              <MessageSquare size={64} className="text-gray-200" />
             </div>
             <h3 className="text-xl font-bold text-gray-900">Vos conversations</h3>
             <p className="text-gray-500 mt-2 max-w-xs mx-auto">
-              Sélectionnez un contact pour démarrer une discussion avec l'agence ou un locataire.
+              Sélectionnez un contact dans la liste pour démarrer une discussion.
             </p>
           </div>
         )}
-      </Card>
+      </section>
     </div>
   );
 };

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPayments } from '../../store/slices/financialSlice';
-import { fetchProperties } from '../../store/slices/propertySlice';
+import { fetchProperties, fetchOwnerStats } from '../../store/slices/propertySlice';
 import Card, { CardBody, CardHeader } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { DollarSign, TrendingUp, Download, Calendar, FileText, CheckCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const FinancialOwner = () => {
   const dispatch = useDispatch();
@@ -18,9 +19,10 @@ const FinancialOwner = () => {
   useEffect(() => {
     dispatch(fetchPayments());
     dispatch(fetchProperties('owner'));
+    dispatch(fetchOwnerStats());
   }, [dispatch]);
-  
-  const filteredPayments = payments?.filter(p => 
+
+  const filteredPayments = payments?.filter(p =>
     (selectedProperty === 'all' || p.bail_details?.bien === parseInt(selectedProperty)) &&
     (new Date(p.date_paiement).getFullYear().toString() === selectedYear)
   ) || [];
@@ -33,6 +35,39 @@ const FinancialOwner = () => {
 
   const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
+  const handleExportCSV = () => {
+    if (!filteredPayments || filteredPayments.length === 0) {
+      toast.error("Aucune donnée à exporter.");
+      return;
+    }
+    const headers = ['Date', 'Référence', 'Montant', 'Statut'];
+    const rows = filteredPayments.map(p => [
+      new Date(p.date_paiement).toLocaleDateString(),
+      p.reference,
+      p.montant,
+      p.statut
+    ]);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `finances_ameto_${selectedYear}.csv`);
+    link.click();
+    toast.success("Données exportées au format CSV !");
+  };
+
+  const handleGenerateReport = () => {
+    toast.success("Rapport DGI Togo généré avec succès !");
+    const dummyContent = "Rapport Fiscal Propriétaire Amétô\n...\nMontant Brut: " + totalRevenue + "\nNet: " + netRevenue;
+    const blob = new Blob([dummyContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Rapport_Fiscal_${selectedYear}.txt`;
+    link.click();
+  };
+
   return (
     <div className="space-y-6 animate-fade-in pb-12">
       {/* Header */}
@@ -42,17 +77,17 @@ const FinancialOwner = () => {
           <p className="text-gray-500 mt-2">Gérez vos revenus fonciers et suivez la performance de votre patrimoine</p>
         </div>
         <div className="flex space-x-3">
-          <Button variant="outline" className="rounded-xl shadow-sm border-gray-200">
+          <Button variant="outline" className="rounded-xl shadow-sm border-gray-200" onClick={handleExportCSV}>
             <Download size={20} className="mr-2" />
             Exporter CSV
           </Button>
-          <Button variant="primary" className="rounded-xl shadow-lg shadow-brand-500/20">
+          <Button variant="primary" className="rounded-xl shadow-lg shadow-brand-500/20" onClick={handleGenerateReport}>
             <FileText size={20} className="mr-2" />
             Rapport DGI Togo
           </Button>
         </div>
       </div>
-      
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-0 shadow-sm hover:shadow-md transition-all">
@@ -101,13 +136,13 @@ const FinancialOwner = () => {
           </CardBody>
         </Card>
       </div>
-      
+
       {/* Filters */}
       <Card className="border-0 shadow-sm">
         <CardBody className="p-4 flex flex-wrap gap-4">
           <div className="flex items-center space-x-2">
             <span className="text-sm font-bold text-gray-700 uppercase tracking-wider">Année :</span>
-            <select 
+            <select
               className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500 font-bold text-gray-900"
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
@@ -117,10 +152,10 @@ const FinancialOwner = () => {
               <option value="2024">2024</option>
             </select>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <span className="text-sm font-bold text-gray-700 uppercase tracking-wider">Bien :</span>
-            <select 
+            <select
               className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500 font-bold text-gray-900"
               value={selectedProperty}
               onChange={(e) => setSelectedProperty(e.target.value)}
@@ -133,7 +168,7 @@ const FinancialOwner = () => {
           </div>
         </CardBody>
       </Card>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Monthly Revenue Table */}
         <Card className="lg:col-span-2 border-0 shadow-sm overflow-hidden">
@@ -172,9 +207,15 @@ const FinancialOwner = () => {
                       </td>
                       <td className="p-4 text-right">
                         {payment.statut?.toUpperCase() === 'VALIDE' && (
-                          <button className="p-2 text-brand-500 hover:bg-brand-50 rounded-lg transition-all">
+                          <a 
+                            href={payment.quittance_pdf?.startsWith('http') ? payment.quittance_pdf : `http://localhost:8000${payment.quittance_pdf}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 text-brand-500 hover:bg-brand-50 rounded-lg transition-all inline-block"
+                            download
+                          >
                             <Download size={16} />
-                          </button>
+                          </a>
                         )}
                       </td>
                     </tr>
@@ -191,7 +232,7 @@ const FinancialOwner = () => {
             </div>
           </CardBody>
         </Card>
-        
+
         {/* Tax & Stats */}
         <div className="space-y-8">
           <Card className="border-0 shadow-sm bg-gray-900 text-white overflow-hidden">
@@ -202,7 +243,7 @@ const FinancialOwner = () => {
                 </div>
                 <h3 className="text-xl font-bold">Performance</h3>
               </div>
-              
+
               <div className="space-y-6">
                 <div>
                   <div className="flex justify-between mb-2">
@@ -213,7 +254,7 @@ const FinancialOwner = () => {
                     <div className="bg-brand-500 h-full rounded-full transition-all duration-1000" style={{ width: `${stats?.taux_occupation || 0}%` }} />
                   </div>
                 </div>
-                
+
                 <div className="pt-4 border-t border-white/10 space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-xs font-bold uppercase tracking-widest">Rendement Net</span>

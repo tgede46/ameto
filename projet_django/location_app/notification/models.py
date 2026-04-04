@@ -18,6 +18,7 @@ class TypeNotification(models.TextChoices):
     REVISION_LOYER = 'REVISION_LOYER', _('Révision annuelle du loyer')
     QUITTANCE = 'QUITTANCE', _('Quittance disponible')
     DOCUMENT = 'DOCUMENT', _('Document généré (bail, état des lieux…)')
+    MAINTENANCE = 'MAINTENANCE', _('Maintenance')
 
 
 # ─────────────────────────────────────────────

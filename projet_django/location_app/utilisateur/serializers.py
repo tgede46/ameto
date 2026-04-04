@@ -101,35 +101,82 @@ class ProprietaireCreateSerializer(serializers.ModelSerializer):
 
 class LocataireSerializer(serializers.ModelSerializer):
     """Sérialiseur lecture d'un locataire."""
+    bail_actif = serializers.SerializerMethodField()
 
     class Meta:
+
         model = Locataire
         fields = [
             'id', 'nom', 'prenom', 'email', 'telephone',
             'adresse', 'date_naissance', 'profession',
-            'personne_a_prevenir', 'actif', 'created_at',
+            'personne_a_prevenir', 'nationalite', 'revenus',
+            'cni', 'fiche_paie', 'garant', 
+            'garant_nom', 'garant_lien', 'garant_telephone',
+            'garant_email', 'garant_profession', 'garant_revenus',
+            'actif', 'created_at',
+            'role', 'is_verified', 'trust_score', 'bail_actif',
         ]
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'garant', 'bail_actif']
+
+    def get_bail_actif(self, obj):
+        bail = obj.bail_actif
+        if not bail:
+            return None
+        return {
+            'id': bail.id,
+            'bien': {
+                'id': bail.bien.id,
+                'titre': bail.bien.adresse,
+                'adresse': bail.bien.adresse,
+                'quartier': "Lomé", # Valeurs par défaut car non présentes dans le modèle
+                'ville': "Togo",
+                'prix': float(bail.bien.loyer_hc),
+                'photos': [
+                    {'image': p.image.url} for p in bail.bien.photos_bien.all()
+                ]
+            },
+            'bien_titre': bail.bien.adresse,
+            'bien_adresse': bail.bien.adresse,
+            'date_entree': bail.date_entree,
+            'date_fin': bail.date_sortie,
+            'loyer': float(bail.loyer_initial),
+            'statut': bail.statut,
+        }
+
+
+
 
 
 class LocataireCreateSerializer(serializers.ModelSerializer):
     """Sérialiseur création / mise à jour d'un locataire."""
 
-    password = serializers.CharField(write_only=True, min_length=8)
+    password = serializers.CharField(write_only=True, min_length=8, required=False)
 
     class Meta:
         model = Locataire
         fields = [
             'nom', 'prenom', 'email', 'telephone', 'adresse',
-            'date_naissance', 'profession', 'personne_a_prevenir', 'password',
+            'date_naissance', 'profession', 'personne_a_prevenir',
+            'nationalite', 'revenus', 'cni', 'fiche_paie',
+            'garant_nom', 'garant_lien', 'garant_telephone',
+            'garant_email', 'garant_profession', 'garant_revenus',
+            'password',
         ]
 
+
     def create(self, validated_data):
-        password = validated_data.pop('password')
+        password = validated_data.pop('password', None)
         loc = Locataire(**validated_data)
-        loc.set_password(password)
+        if password:
+            loc.set_password(password)
         loc.save()
         return loc
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        if password:
+            instance.set_password(password)
+        return super().update(instance, validated_data)
 
 
 # ─────────────────────────────────────────────

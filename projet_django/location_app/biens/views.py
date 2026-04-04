@@ -5,19 +5,23 @@ Views — application biens
 from rest_framework import viewsets, status, permissions, parsers
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.utils import timezone
 
 from .models import (
     Bien, Bail, Paiement, Quittance,
-    Categorie, TypeAppartement, VideoBien, Maintenance,
+    Categorie, TypeAppartement, VideoBien, Maintenance, Candidature, StatusMaintenance
 )
 from .serializers import (
     BienListSerializer, BienDetailSerializer,
     BailSerializer, PaiementSerializer, QuittanceSerializer,
     CategorieSerializer, TypeAppartementSerializer, PhotoBienSerializer, VideoBienSerializer,
-    MaintenanceSerializer,
+    MaintenanceSerializer, CandidatureSerializer
 )
 from .services import BienService, BailService, PaiementService
 from utilisateur.permissions import IsProprietaireUser, IsAdminUser
+from utilisateur.models import Utilisateur
+from notification.models import TypeNotification
+from notification.services import NotificationService
 
 
 # ─────────────────────────────────────────────
@@ -83,8 +87,15 @@ class BienViewSet(viewsets.ModelViewSet):
         }
         filtres = {k: v for k, v in filtres.items() if v}
 
+        # Pour les admins, on lister tout (y compris loués)
         if self.action == 'list':
+            user = self.request.user
+            if user.is_authenticated and user.role == 'ADMIN':
+                return Bien.objects.select_related(
+                    'categorie', 'type_appartement', 'proprietaire'
+                ).prefetch_related('photos_bien').all()
             return BienService.lister_disponibles(filtres)
+            
         return Bien.objects.select_related(
             'categorie', 'type_appartement', 'proprietaire'
         ).prefetch_related('photos_bien').all()
@@ -112,6 +123,9 @@ class BienViewSet(viewsets.ModelViewSet):
         biens = Bien.objects.select_related(
             'categorie', 'type_appartement', 'proprietaire'
         ).prefetch_related('photos_bien').order_by('-created_at')[:5]
+        serializer = BienDetailSerializer(biens, many=True)
+        return Response(serializer.data)
+
         serializer = BienDetailSerializer(biens, many=True)
         return Response(serializer.data)
 
@@ -202,14 +216,13 @@ class BienViewSet(viewsets.ModelViewSet):
             erreurs = []
 
             for index, photo_data in enumerate(photos_data):
-                photo_data['bien'] = bien.pk
                 serializer = PhotoBienSerializer(
                     data=photo_data,
                     context={'request': request},
                 )
                 if serializer.is_valid():
                     try:
-                        photo = serializer.save()
+                        photo = serializer.save(bien=bien)
                         photos_creees.append(
                             PhotoBienSerializer(photo, context={'request': request}).data
                         )
@@ -227,12 +240,12 @@ class BienViewSet(viewsets.ModelViewSet):
         # Une seule photo
         else:
             serializer = PhotoBienSerializer(
-                data={**request.data, 'bien': bien.pk},
+                data=request.data,
                 context={'request': request},
             )
             if serializer.is_valid():
                 try:
-                    photo = serializer.save()
+                    photo = serializer.save(bien=bien)
                     return Response(
                         PhotoBienSerializer(photo, context={'request': request}).data,
                         status=status.HTTP_201_CREATED,
@@ -388,6 +401,25 @@ class PaiementViewSet(viewsets.ModelViewSet):
     serializer_class = PaiementSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return Paiement.objects.none()
+            
+        if user.role == 'ADMIN':
+            return Paiement.objects.all()
+        elif user.role == 'PROPRIETAIRE':
+            return Paiement.objects.filter(bail__bien__proprietaire=user.proprietaire)
+        elif user.role == 'LOCATAIRE' and hasattr(user, 'locataire'):
+            return Paiement.objects.filter(locataire=user.locataire)
+        return Paiement.objects.none()
+
+    def perform_create(self, serializer):
+        if hasattr(self.request.user, 'locataire'):
+            serializer.save(locataire=self.request.user.locataire)
+        else:
+            serializer.save()
+
     @action(detail=True, methods=['post'])
     def valider(self, request, pk=None):
         """POST /api/paiements/{id}/valider/"""
@@ -443,9 +475,13 @@ class MaintenanceViewSet(viewsets.ModelViewSet):
     """
     queryset = Maintenance.objects.all().order_by('-date_signalement')
     serializer_class = MaintenanceSerializer
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser]
 
     def get_queryset(self):
         user = self.request.user
+        if not user.is_authenticated:
+            return Maintenance.objects.none()
+            
         if user.role == 'ADMIN':
             return Maintenance.objects.all()
         elif user.role == 'PROPRIETAIRE':
@@ -456,6 +492,159 @@ class MaintenanceViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         if self.request.user.role == 'LOCATAIRE':
+            maintenance = serializer.save(locataire=self.request.user.locataire)
+
+            # Notifier le propriétaire
+            NotificationService.envoyer(
+                destinataire=maintenance.bien.proprietaire,
+                type_notif=TypeNotification.MAINTENANCE,
+                titre='Nouvelle demande de maintenance',
+                message=(
+                    f"{maintenance.locataire.full_name} a signalé un problème pour "
+                    f"{maintenance.bien.adresse} : {maintenance.titre}."
+                ),
+            )
+
+            # Notifier les admins
+            admins = Utilisateur.objects.filter(role='ADMIN')
+            for admin in admins:
+                NotificationService.envoyer(
+                    destinataire=admin,
+                    type_notif=TypeNotification.MAINTENANCE,
+                    titre='Maintenance signalée',
+                    message=(
+                        f"Demande de maintenance sur {maintenance.bien.adresse} "
+                        f"signalée par {maintenance.locataire.full_name}."
+                    ),
+                )
+        else:
+            serializer.save()
+
+    def update(self, request, *args, **kwargs):
+        maintenance = self.get_object()
+        old_status = maintenance.statut
+
+        response = super().update(request, *args, **kwargs)
+
+        maintenance.refresh_from_db(fields=['statut', 'titre', 'bien', 'locataire'])
+        self._notify_status_change(maintenance, old_status, request.user)
+        return response
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+
+    def _notify_status_change(self, maintenance, old_status, actor):
+        if old_status == maintenance.statut:
+            return
+
+        # La demande du user: le locataire doit être notifié quand la maintenance est approuvée.
+        if (
+            maintenance.statut == StatusMaintenance.APPROUVE
+            and actor.role in ['PROPRIETAIRE', 'ADMIN']
+        ):
+            NotificationService.envoyer(
+                destinataire=maintenance.locataire,
+                type_notif=TypeNotification.MAINTENANCE,
+                titre='Demande de maintenance approuvée',
+                message=(
+                    f"Votre demande '{maintenance.titre}' pour {maintenance.bien.adresse} "
+                    "a été approuvée par le propriétaire."
+                ),
+            )
+
+    @action(detail=True, methods=['post'], url_path='envoyer-justificatif')
+    def envoyer_justificatif(self, request, pk=None):
+        """POST /api/maintenances/{id}/envoyer-justificatif/"""
+        maintenance = self.get_object()
+        user = request.user
+
+        if user.role != 'LOCATAIRE' or not hasattr(user, 'locataire'):
+            return Response({'detail': 'Seul le locataire peut envoyer un justificatif.'}, status=403)
+
+        if maintenance.locataire_id != user.locataire.id:
+            return Response({'detail': 'Vous ne pouvez envoyer un justificatif que pour vos demandes.'}, status=403)
+
+        justificatif = request.FILES.get('justificatif')
+        if not justificatif:
+            return Response({'detail': 'Le fichier justificatif est requis.'}, status=400)
+
+        commentaire = (request.data.get('justificatif_commentaire') or '').strip()
+
+        maintenance.justificatif = justificatif
+        maintenance.justificatif_commentaire = commentaire
+        maintenance.date_envoi_justificatif = timezone.now()
+        maintenance.save()
+
+        NotificationService.envoyer(
+            destinataire=maintenance.bien.proprietaire,
+            type_notif=TypeNotification.MAINTENANCE,
+            titre='Justificatif de maintenance reçu',
+            message=(
+                f"Le locataire a envoyé un justificatif pour '{maintenance.titre}' "
+                f"({maintenance.bien.adresse})."
+            ),
+        )
+
+        serializer = self.get_serializer(maintenance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            
+# ─────────────────────────────────────────────
+# Candidature
+# ─────────────────────────────────────────────
+
+class CandidatureViewSet(viewsets.ModelViewSet):
+    """
+    Gestion des candidatures.
+    Locataires : voient les leurs, créent.
+    Proprios : voient celles pour leurs biens, peuvent changer le statut.
+    """
+    queryset = Candidature.objects.all()
+    serializer_class = CandidatureSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return Candidature.objects.none()
+            
+        if user.role == 'ADMIN':
+            return Candidature.objects.all()
+        elif user.role == 'PROPRIETAIRE':
+            # Si on est sur le frontend client (via API), le propriétaire ne doit voir 
+            # ses propres candidatures que s'il est aussi locataire (cas rare).
+            # Pour la console proprio, il y a d'autres endpoints ou on filtre par bien.
+            # Ici on restreint pour éviter la confusion sur le tableau de bord client.
+            if hasattr(user, 'locataire'):
+                return Candidature.objects.filter(locataire=user.locataire)
+            return Candidature.objects.none()
+        elif user.role == 'LOCATAIRE':
+            # Utiliser hasattr car c'est une relation OneToOne
+            if hasattr(user, 'locataire'):
+                return Candidature.objects.filter(locataire=user.locataire)
+        return Candidature.objects.none()
+
+    def perform_create(self, serializer):
+        if self.request.user.role == 'LOCATAIRE':
             serializer.save(locataire=self.request.user.locataire)
         else:
             serializer.save()
+            
+    def update(self, request, *args, **kwargs):
+        # Restriction : Seul le proprio du bien peut changer le statut
+        candidature = self.get_object()
+        user = request.user
+        
+        if user.role == 'PROPRIETAIRE':
+            if not hasattr(user, 'proprietaire'):
+                return Response({'detail': "Le profil propriétaire est manquant."}, status=403)
+            if candidature.bien.proprietaire != user.proprietaire:
+                return Response({'detail': "Vous n'êtes pas propriétaire de ce bien."}, status=403)
+        
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+

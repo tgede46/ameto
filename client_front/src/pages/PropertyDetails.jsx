@@ -1,3 +1,4 @@
+import { toApiMediaUrl } from '../services/api';
 import Header from "../components/Header";
 import {
   Calendar, Wifi, Car, Waves, ArrowLeft, Check, Star,
@@ -9,6 +10,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { submitCandidature } from "../store/userSlice";
+import { fetchPropertyDetail, clearSelectedProperty } from "../store/propertySlice";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
 import L from "leaflet";
@@ -76,7 +78,7 @@ function GalleryModal({ images, startIndex, onClose }) {
   useEffect(() => {
     const handler = (e) => {
       if (e.key === 'ArrowRight') setCurrent(i => Math.min(images.length - 1, i + 1));
-      if (e.key === 'ArrowLeft')  setCurrent(i => Math.max(0, i - 1));
+      if (e.key === 'ArrowLeft') setCurrent(i => Math.max(0, i - 1));
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handler);
@@ -143,9 +145,8 @@ function GalleryModal({ images, startIndex, onClose }) {
           <button
             key={i}
             onClick={() => setCurrent(i)}
-            className={`flex-shrink-0 transition-all rounded-xl overflow-hidden border-2 ${
-              i === current ? 'border-white scale-105' : 'border-transparent opacity-40 hover:opacity-70'
-            }`}
+            className={`flex-shrink-0 transition-all rounded-xl overflow-hidden border-2 ${i === current ? 'border-white scale-105' : 'border-transparent opacity-40 hover:opacity-70'
+              }`}
           >
             <img src={img} className="w-20 h-14 object-cover" />
           </button>
@@ -302,7 +303,11 @@ function CandidatureModal({ property, onClose }) {
 
 /* ── MAIN COMPONENT ── */
 export default function PropertyDetails() {
-  const { id } = useParams();
+  const { id: rawId } = useParams();
+  const id = rawId.replace(/^:/, ''); // Strip leading colon if user typoes `/property/:1`
+  const dispatch = useDispatch();
+  const { selectedProperty: apiProperty, detailLoading } = useSelector((state) => state.properties);
+
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryStart, setGalleryStart] = useState(0);
   const [showModal, setShowModal] = useState(false);
@@ -313,7 +318,54 @@ export default function PropertyDetails() {
   const [isSticky, setIsSticky] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
 
-  const property = allProperties[id] || allProperties["1"];
+  // Fetch real property data from API
+  useEffect(() => {
+    dispatch(fetchPropertyDetail(id));
+    return () => dispatch(clearSelectedProperty());
+  }, [dispatch, id]);
+
+  const formatPrice = (price) => {
+    if (!price) return '0';
+    const num = typeof price === 'string' ? parseFloat(price.replace(/[^0-9.]/g, '')) : price;
+    return isNaN(num) ? '0' : new Intl.NumberFormat('fr-FR').format(num);
+  };
+
+  const property = apiProperty ? {
+    id: apiProperty.id,
+    title: apiProperty.adresse || 'Logement sans adresse',
+    location: `${apiProperty.adresse || 'Lomé'}, Togo`,
+    lat: apiProperty.latitude || 6.1366,
+    lng: apiProperty.longitude || 1.2222,
+    price: formatPrice(apiProperty.loyer_hc),
+    period: "/ mois",
+    rating: apiProperty.note_moyenne || 0,
+    reviews: apiProperty.nombre_avis || 0,
+    host: {
+      name: apiProperty.proprietaire_nom || "Agent M. Yao",
+      role: "Propriétaire vérifié",
+      image: "/outils/avatar.png",
+      joined: "Membre vérifié",
+      responseTime: "Réponse rapide"
+    },
+    specs: [
+      { label: apiProperty.type_appartement?.libelle || "Bien standard" },
+      { label: apiProperty.categorie?.libelle || "Location" },
+      { label: apiProperty.statut_display || "Mise en location" },
+    ],
+    amenities: apiProperty.equipements?.length > 0
+      ? apiProperty.equipements.map(eq => ({ icon: Check, label: eq }))
+      : [],
+    images: apiProperty.photos_bien?.length > 0
+      ? apiProperty.photos_bien.map((p) => {
+        const rawUrl = p.image_url || p.image;
+        return toApiMediaUrl(rawUrl) || "/outils/M1.png";
+      })
+      : ["/outils/M1.png", "/outils/M2.png", "/outils/img3.png"],
+    description: apiProperty.description || "Aucune description fournie pour le moment.",
+    caution: formatPrice(apiProperty.loyer_hc * 3 || 0),
+    nearbyPlaces: [],
+    statut: apiProperty.statut,
+  } : null;
 
   useEffect(() => {
     const handler = () => setIsSticky(window.scrollY > 500);
@@ -329,13 +381,24 @@ export default function PropertyDetails() {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {}
+    } catch { }
   };
 
   const handleWhatsApp = () => {
     const text = encodeURIComponent(`Je suis intéressé(e) par : ${property.title} – ${property.price} FCFA ${property.period}\n${window.location.href}`);
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
+
+  if (detailLoading || !property) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="flex items-center justify-center py-40">
+          <Loader2 className="w-12 h-12 text-[#FF385C] animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   const visibleAmenities = showAllAmenities ? property.amenities : property.amenities.slice(0, 6);
 
@@ -463,9 +526,9 @@ export default function PropertyDetails() {
             {/* Key Features */}
             <div className="space-y-6 pb-10 border-b border-[#EBEBEB]">
               {[
-                { icon: DoorOpen,   title: "Arrivée autonome",              desc: "Vous pouvez entrer dans les lieux avec une boîte à clé sécurisée." },
-                { icon: MapPin,     title: "Emplacement idéal",             desc: "95 % des visiteurs ont attribué 5 étoiles à l'emplacement." },
-                { icon: Calendar,   title: "Annulation gratuite avant le 1er Avril", desc: "Bénéficiez d'un remboursement intégral si vous changez d'avis." },
+                { icon: DoorOpen, title: "Arrivée autonome", desc: "Vous pouvez entrer dans les lieux avec une boîte à clé sécurisée." },
+                { icon: MapPin, title: "Emplacement idéal", desc: "95 % des visiteurs ont attribué 5 étoiles à l'emplacement." },
+                { icon: Calendar, title: "Annulation gratuite avant le 1er Avril", desc: "Bénéficiez d'un remboursement intégral si vous changez d'avis." },
               ].map((feat, i) => (
                 <div key={i} className="flex gap-5 group">
                   <div className="w-10 h-10 rounded-2xl bg-[#F9FAFB] flex items-center justify-center flex-shrink-0 group-hover:bg-[#fff0f1] transition-colors">
@@ -604,7 +667,7 @@ export default function PropertyDetails() {
 
               {/* Date inputs */}
               <div className="relative border border-white/40 bg-white/40 rounded-2xl overflow-hidden backdrop-blur-md">
-                <div 
+                <div
                   onClick={() => setShowCalendar(true)}
                   className="grid grid-cols-2 divide-x divide-white/40 border-b border-white/40"
                 >

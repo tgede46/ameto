@@ -2,10 +2,11 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     CategorieViewSet, TypeAppartementViewSet,
     BienViewSet, BailViewSet, PaiementViewSet, QuittanceViewSet,
-    MaintenanceViewSet
+    MaintenanceViewSet, CandidatureViewSet
 )
 
 router = DefaultRouter()
+router.register(r'biens/candidatures', CandidatureViewSet, basename='candidature')
 router.register(r'categories', CategorieViewSet, basename='categorie')
 router.register(r'types-appartement', TypeAppartementViewSet, basename='type-appartement')
 router.register(r'biens', BienViewSet, basename='bien')

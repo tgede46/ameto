@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import Home from './pages/Home';
+import Home from './pages/home';
 import Login from './pages/Login';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminLayout from './components/layout/AdminLayout';
@@ -19,6 +19,9 @@ import MaintenanceOwner from './pages/owner/MaintenanceOwner';
 import ProfileOwner from './pages/owner/ProfileOwner';
 import ChatOwner from './pages/owner/ChatOwner';
 import AddPropertyOwner from './pages/owner/AddPropertyOwner';
+import EditPropertyOwner from './pages/owner/EditPropertyOwner';
+import PropertyDetailsOwner from './pages/owner/PropertyDetailsOwner';
+import CandidaturesOwner from './pages/owner/CandidaturesOwner';
 
 export const router = createBrowserRouter([
   { path: '/', element: <Home /> },
@@ -54,10 +57,13 @@ export const router = createBrowserRouter([
       { path: 'dashboard', element: <OwnerDashboard /> },
       { path: 'properties', element: <PropertiesOwner /> },
       { path: 'properties/add', element: <AddPropertyOwner /> },
+      { path: 'properties/:id', element: <PropertyDetailsOwner /> },
+      { path: 'properties/edit/:id', element: <EditPropertyOwner /> },
       { path: 'financial', element: <FinancialOwner /> },
       { path: 'maintenance', element: <MaintenanceOwner /> },
       { path: 'profile', element: <ProfileOwner /> },
       { path: 'chat', element: <ChatOwner /> },
+      { path: 'candidatures', element: <CandidaturesOwner /> },
     ],
   },
   { path: '*', element: <Navigate to="/" replace /> },

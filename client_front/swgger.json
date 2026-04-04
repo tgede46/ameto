@@ -1,0 +1,5273 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Location App API",
+    "description": "Documentation Swagger / OpenAPI de l'API Location App",
+    "contact": {
+      "email": "support@location-app.local"
+    },
+    "version": "v1"
+  },
+  "host": "localhost:8000",
+  "schemes": [
+    "http"
+  ],
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "securityDefinitions": {
+    "Basic": {
+      "type": "basic"
+    }
+  },
+  "security": [
+    {
+      "Basic": []
+    }
+  ],
+  "paths": {
+    "/2fa/change_method/": {
+      "post": {
+        "operationId": "2fa_change_method",
+        "summary": "POST /api/2fa/change-method/\nBody : { \"methode\": \"EMAIL\" } ou { \"methode\": \"TOTP\" }",
+        "description": "Change la méthode 2FA (nécessite reconfiguration).",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "2fa"
+        ]
+      },
+      "parameters": []
+    },
+    "/2fa/disable/": {
+      "post": {
+        "operationId": "2fa_disable",
+        "summary": "POST /api/2fa/disable/\nBody : { \"code\": \"123456\" } (code de vérification ou backup code)",
+        "description": "Désactive la 2FA après vérification.",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "2fa"
+        ]
+      },
+      "parameters": []
+    },
+    "/2fa/enable/": {
+      "post": {
+        "operationId": "2fa_enable",
+        "summary": "POST /api/2fa/enable/\nBody : { \"methode\": \"TOTP\" } ou { \"methode\": \"EMAIL\" }",
+        "description": "Pour TOTP: retourne le secret et le QR code\nPour EMAIL: envoie un code par email",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "2fa"
+        ]
+      },
+      "parameters": []
+    },
+    "/2fa/regenerate_backup/": {
+      "post": {
+        "operationId": "2fa_regenerate_backup",
+        "description": "POST /api/2fa/regenerate-backup/\nRégénère les codes de secours (nécessite vérification).",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "2fa"
+        ]
+      },
+      "parameters": []
+    },
+    "/2fa/status/": {
+      "get": {
+        "operationId": "2fa_status",
+        "description": "GET /api/2fa/status/\nRetourne le statut de la 2FA pour l'utilisateur connecté.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "2fa"
+        ]
+      },
+      "parameters": []
+    },
+    "/2fa/verify/": {
+      "post": {
+        "operationId": "2fa_verify",
+        "summary": "POST /api/2fa/verify/\nBody : { \"code\": \"123456\" }",
+        "description": "Vérifie le code et active la 2FA si valide.",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "2fa"
+        ]
+      },
+      "parameters": []
+    },
+    "/auth/changer_password/": {
+      "post": {
+        "operationId": "auth_changer_password",
+        "description": "POST /api/auth/changer-password/\nBody : { \"ancien_password\": \"...\", \"nouveau_password\": \"...\" }",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/auth/login/": {
+      "post": {
+        "operationId": "auth_login",
+        "description": "POST /api/auth/login/\nBody : { \"email\": \"...\", \"password\": \"...\" } ou { \"username\": \"...\", \"password\": \"...\" }",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/auth/profile/": {
+      "get": {
+        "operationId": "auth_profile_read",
+        "description": "GET /api/auth/profile/      → Retourne le profil spécialisé (selon le rôle).\nPATCH /api/auth/profile/    → Met à jour le profil de l'utilisateur connecté.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      },
+      "patch": {
+        "operationId": "auth_profile_partial_update",
+        "description": "GET /api/auth/profile/      → Retourne le profil spécialisé (selon le rôle).\nPATCH /api/auth/profile/    → Met à jour le profil de l'utilisateur connecté.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/auth/register/": {
+      "post": {
+        "operationId": "auth_register",
+        "description": "POST /api/auth/register/\nBody : { \"email\": \"...\", \"password\": \"...\", \"nom\": \"...\", \"prenom\": \"...\", \"role\": \"...\" }",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/auth/token/refresh/": {
+      "post": {
+        "operationId": "auth_token_token_refresh",
+        "description": "POST /api/auth/token/refresh/\nBody : { \"refresh\": \"...\" }",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/auth/token/verify/": {
+      "post": {
+        "operationId": "auth_token_token_verify",
+        "description": "POST /api/auth/token/verify/\nBody : { \"token\": \"...\" }",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/bail/": {
+      "get": {
+        "operationId": "bail_list",
+        "description": "GET    /api/bail/                         → liste\nPOST   /api/bail/                         → créer un bail\nGET    /api/bail/{id}/                    → détail\nPOST   /api/bail/{id}/resilier/           → résilier\nPOST   /api/bail/{id}/renouveler/         → renouveler\nGET    /api/bail/{id}/paiements/          → paiements du bail",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Bail"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "bail"
+        ]
+      },
+      "post": {
+        "operationId": "bail_create",
+        "description": "GET    /api/bail/                         → liste\nPOST   /api/bail/                         → créer un bail\nGET    /api/bail/{id}/                    → détail\nPOST   /api/bail/{id}/resilier/           → résilier\nPOST   /api/bail/{id}/renouveler/         → renouveler\nGET    /api/bail/{id}/paiements/          → paiements du bail",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Bail"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Bail"
+            }
+          }
+        },
+        "tags": [
+          "bail"
+        ]
+      },
+      "parameters": []
+    },
+    "/bail/{id}/": {
+      "get": {
+        "operationId": "bail_read",
+        "description": "GET    /api/bail/                         → liste\nPOST   /api/bail/                         → créer un bail\nGET    /api/bail/{id}/                    → détail\nPOST   /api/bail/{id}/resilier/           → résilier\nPOST   /api/bail/{id}/renouveler/         → renouveler\nGET    /api/bail/{id}/paiements/          → paiements du bail",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Bail"
+            }
+          }
+        },
+        "tags": [
+          "bail"
+        ]
+      },
+      "put": {
+        "operationId": "bail_update",
+        "description": "GET    /api/bail/                         → liste\nPOST   /api/bail/                         → créer un bail\nGET    /api/bail/{id}/                    → détail\nPOST   /api/bail/{id}/resilier/           → résilier\nPOST   /api/bail/{id}/renouveler/         → renouveler\nGET    /api/bail/{id}/paiements/          → paiements du bail",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Bail"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Bail"
+            }
+          }
+        },
+        "tags": [
+          "bail"
+        ]
+      },
+      "patch": {
+        "operationId": "bail_partial_update",
+        "description": "GET    /api/bail/                         → liste\nPOST   /api/bail/                         → créer un bail\nGET    /api/bail/{id}/                    → détail\nPOST   /api/bail/{id}/resilier/           → résilier\nPOST   /api/bail/{id}/renouveler/         → renouveler\nGET    /api/bail/{id}/paiements/          → paiements du bail",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Bail"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Bail"
+            }
+          }
+        },
+        "tags": [
+          "bail"
+        ]
+      },
+      "delete": {
+        "operationId": "bail_delete",
+        "description": "GET    /api/bail/                         → liste\nPOST   /api/bail/                         → créer un bail\nGET    /api/bail/{id}/                    → détail\nPOST   /api/bail/{id}/resilier/           → résilier\nPOST   /api/bail/{id}/renouveler/         → renouveler\nGET    /api/bail/{id}/paiements/          → paiements du bail",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "bail"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Bail.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/bail/{id}/paiements/": {
+      "get": {
+        "operationId": "bail_paiements",
+        "description": "GET /api/bail/{id}/paiements/",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Bail"
+            }
+          }
+        },
+        "tags": [
+          "bail"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Bail.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/bail/{id}/renouveler/": {
+      "post": {
+        "operationId": "bail_renouveler",
+        "description": "POST /api/bail/{id}/renouveler/ — Body : { \"nouvelle_date_sortie\": \"YYYY-MM-DD\" }",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Bail"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Bail"
+            }
+          }
+        },
+        "tags": [
+          "bail"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Bail.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/bail/{id}/resilier/": {
+      "post": {
+        "operationId": "bail_resilier",
+        "description": "POST /api/bail/{id}/resilier/",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Bail"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Bail"
+            }
+          }
+        },
+        "tags": [
+          "bail"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Bail.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/biens/": {
+      "get": {
+        "operationId": "biens_list",
+        "description": "GET    /api/biens/                    → liste (biens disponibles publics)\nGET    /api/biens/recents/            → 5 derniers biens créés\nPOST   /api/biens/                    → créer un bien\nGET    /api/biens/{id}/               → détail\nPUT    /api/biens/{id}/               → modifier\nDELETE /api/biens/{id}/               → supprimer\nGET    /api/biens/{id}/bail/          → bails du bien\nPOST   /api/biens/{id}/photos/        → ajouter une photo (fichier ou base64)\nDELETE /api/biens/{id}/photos/{pk}/   → supprimer une photo\nPOST   /api/biens/{id}/videos/        → ajouter une vidéo\nDELETE /api/biens/{id}/videos/{pk}/   → supprimer une vidéo",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/BienList"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "post": {
+        "operationId": "biens_create",
+        "description": "GET    /api/biens/                    → liste (biens disponibles publics)\nGET    /api/biens/recents/            → 5 derniers biens créés\nPOST   /api/biens/                    → créer un bien\nGET    /api/biens/{id}/               → détail\nPUT    /api/biens/{id}/               → modifier\nDELETE /api/biens/{id}/               → supprimer\nGET    /api/biens/{id}/bail/          → bails du bien\nPOST   /api/biens/{id}/photos/        → ajouter une photo (fichier ou base64)\nDELETE /api/biens/{id}/photos/{pk}/   → supprimer une photo\nPOST   /api/biens/{id}/videos/        → ajouter une vidéo\nDELETE /api/biens/{id}/videos/{pk}/   → supprimer une vidéo",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BienDetail"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/BienDetail"
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "parameters": []
+    },
+    "/biens/candidatures/": {
+      "get": {
+        "operationId": "biens_candidatures_list",
+        "description": "Gestion des candidatures.\nLocataires : voient les leurs, créent.\nProprios : voient celles pour leurs biens, peuvent changer le statut.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Candidature"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "post": {
+        "operationId": "biens_candidatures_create",
+        "description": "Gestion des candidatures.\nLocataires : voient les leurs, créent.\nProprios : voient celles pour leurs biens, peuvent changer le statut.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Candidature"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Candidature"
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "parameters": []
+    },
+    "/biens/candidatures/{id}/": {
+      "get": {
+        "operationId": "biens_candidatures_read",
+        "description": "Gestion des candidatures.\nLocataires : voient les leurs, créent.\nProprios : voient celles pour leurs biens, peuvent changer le statut.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Candidature"
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "put": {
+        "operationId": "biens_candidatures_update",
+        "description": "Gestion des candidatures.\nLocataires : voient les leurs, créent.\nProprios : voient celles pour leurs biens, peuvent changer le statut.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Candidature"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Candidature"
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "patch": {
+        "operationId": "biens_candidatures_partial_update",
+        "description": "Gestion des candidatures.\nLocataires : voient les leurs, créent.\nProprios : voient celles pour leurs biens, peuvent changer le statut.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Candidature"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Candidature"
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "delete": {
+        "operationId": "biens_candidatures_delete",
+        "description": "Gestion des candidatures.\nLocataires : voient les leurs, créent.\nProprios : voient celles pour leurs biens, peuvent changer le statut.",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Candidature.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/biens/mes-biens/": {
+      "get": {
+        "operationId": "biens_mes_biens",
+        "description": "GET /api/biens/mes-biens/ — Liste tous les biens du propriétaire connecté.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/BienDetail"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "parameters": []
+    },
+    "/biens/mes-stats/": {
+      "get": {
+        "operationId": "biens_mes_stats",
+        "description": "GET /api/biens/mes-stats/ — Statistiques pour le dashboard propriétaire.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/BienDetail"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "parameters": []
+    },
+    "/biens/recents/": {
+      "get": {
+        "operationId": "biens_recents",
+        "description": "GET /api/biens/recents/ — Retourne les 5 derniers biens créés.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/BienDetail"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "parameters": []
+    },
+    "/biens/{id}/": {
+      "get": {
+        "operationId": "biens_read",
+        "description": "GET    /api/biens/                    → liste (biens disponibles publics)\nGET    /api/biens/recents/            → 5 derniers biens créés\nPOST   /api/biens/                    → créer un bien\nGET    /api/biens/{id}/               → détail\nPUT    /api/biens/{id}/               → modifier\nDELETE /api/biens/{id}/               → supprimer\nGET    /api/biens/{id}/bail/          → bails du bien\nPOST   /api/biens/{id}/photos/        → ajouter une photo (fichier ou base64)\nDELETE /api/biens/{id}/photos/{pk}/   → supprimer une photo\nPOST   /api/biens/{id}/videos/        → ajouter une vidéo\nDELETE /api/biens/{id}/videos/{pk}/   → supprimer une vidéo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/BienDetail"
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "put": {
+        "operationId": "biens_update",
+        "description": "GET    /api/biens/                    → liste (biens disponibles publics)\nGET    /api/biens/recents/            → 5 derniers biens créés\nPOST   /api/biens/                    → créer un bien\nGET    /api/biens/{id}/               → détail\nPUT    /api/biens/{id}/               → modifier\nDELETE /api/biens/{id}/               → supprimer\nGET    /api/biens/{id}/bail/          → bails du bien\nPOST   /api/biens/{id}/photos/        → ajouter une photo (fichier ou base64)\nDELETE /api/biens/{id}/photos/{pk}/   → supprimer une photo\nPOST   /api/biens/{id}/videos/        → ajouter une vidéo\nDELETE /api/biens/{id}/videos/{pk}/   → supprimer une vidéo",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BienDetail"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/BienDetail"
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "patch": {
+        "operationId": "biens_partial_update",
+        "description": "GET    /api/biens/                    → liste (biens disponibles publics)\nGET    /api/biens/recents/            → 5 derniers biens créés\nPOST   /api/biens/                    → créer un bien\nGET    /api/biens/{id}/               → détail\nPUT    /api/biens/{id}/               → modifier\nDELETE /api/biens/{id}/               → supprimer\nGET    /api/biens/{id}/bail/          → bails du bien\nPOST   /api/biens/{id}/photos/        → ajouter une photo (fichier ou base64)\nDELETE /api/biens/{id}/photos/{pk}/   → supprimer une photo\nPOST   /api/biens/{id}/videos/        → ajouter une vidéo\nDELETE /api/biens/{id}/videos/{pk}/   → supprimer une vidéo",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BienDetail"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/BienDetail"
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "delete": {
+        "operationId": "biens_delete",
+        "description": "GET    /api/biens/                    → liste (biens disponibles publics)\nGET    /api/biens/recents/            → 5 derniers biens créés\nPOST   /api/biens/                    → créer un bien\nGET    /api/biens/{id}/               → détail\nPUT    /api/biens/{id}/               → modifier\nDELETE /api/biens/{id}/               → supprimer\nGET    /api/biens/{id}/bail/          → bails du bien\nPOST   /api/biens/{id}/photos/        → ajouter une photo (fichier ou base64)\nDELETE /api/biens/{id}/photos/{pk}/   → supprimer une photo\nPOST   /api/biens/{id}/videos/        → ajouter une vidéo\nDELETE /api/biens/{id}/videos/{pk}/   → supprimer une vidéo",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/biens/{id}/bail/": {
+      "get": {
+        "operationId": "biens_bail",
+        "description": "GET /api/biens/{id}/bail/ — Liste les bails du bien.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/BienDetail"
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/biens/{id}/photos/": {
+      "post": {
+        "operationId": "biens_ajouter_photo",
+        "summary": "POST /api/biens/{id}/photos/",
+        "description": "Option 1 - Une seule photo :\n{\n    \"image_base64_input\": \"data:image/jpeg;base64,...\",\n    \"legende\": \"Chambre\",\n    \"ordre\": 0\n}\n\nOption 2 - Plusieurs photos (liste) :\n{\n    \"photos\": [\n        {\"image_base64_input\": \"data:image/jpeg;base64,...\", \"legende\": \"Chambre\", \"ordre\": 0},\n        {\"image_base64_input\": \"data:image/png;base64,...\", \"legende\": \"Cuisine\", \"ordre\": 1}\n    ]\n}",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BienDetail"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/BienDetail"
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/biens/{id}/photos/{photo_pk}/": {
+      "delete": {
+        "operationId": "biens_supprimer_photo",
+        "description": "DELETE /api/biens/{id}/photos/{photo_pk}/\nSupprime une photo du bien.",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "name": "photo_pk",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/biens/{id}/videos/": {
+      "post": {
+        "operationId": "biens_ajouter_video",
+        "summary": "POST /api/biens/{id}/videos/\nUpload une ou plusieurs vidéos pour le bien.",
+        "description": "Multipart form-data:\n- video: fichier vidéo (MP4, AVI, MOV, WEBM)\n- thumbnail: miniature (optionnel)\n- titre: titre de la vidéo (optionnel)\n- description: description (optionnel)\n- duree: durée en secondes (optionnel)\n- ordre: ordre d'affichage (optionnel, d'éfaut 0)",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BienDetail"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/BienDetail"
+            }
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/biens/{id}/videos/{video_pk}/": {
+      "delete": {
+        "operationId": "biens_supprimer_video",
+        "description": "DELETE /api/biens/{id}/videos/{video_pk}/\nSupprime une vidéo du bien.",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "biens"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "name": "video_pk",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/categories/": {
+      "get": {
+        "operationId": "categories_list",
+        "description": "GET    /api/categories/        → liste\nPOST   /api/categories/        → créer\nGET    /api/categories/{id}/   → détail\nPUT    /api/categories/{id}/   → modifier\nDELETE /api/categories/{id}/   → supprimer",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Categorie"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "categories"
+        ]
+      },
+      "post": {
+        "operationId": "categories_create",
+        "description": "GET    /api/categories/        → liste\nPOST   /api/categories/        → créer\nGET    /api/categories/{id}/   → détail\nPUT    /api/categories/{id}/   → modifier\nDELETE /api/categories/{id}/   → supprimer",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Categorie"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Categorie"
+            }
+          }
+        },
+        "tags": [
+          "categories"
+        ]
+      },
+      "parameters": []
+    },
+    "/categories/{id}/": {
+      "get": {
+        "operationId": "categories_read",
+        "description": "GET    /api/categories/        → liste\nPOST   /api/categories/        → créer\nGET    /api/categories/{id}/   → détail\nPUT    /api/categories/{id}/   → modifier\nDELETE /api/categories/{id}/   → supprimer",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Categorie"
+            }
+          }
+        },
+        "tags": [
+          "categories"
+        ]
+      },
+      "put": {
+        "operationId": "categories_update",
+        "description": "GET    /api/categories/        → liste\nPOST   /api/categories/        → créer\nGET    /api/categories/{id}/   → détail\nPUT    /api/categories/{id}/   → modifier\nDELETE /api/categories/{id}/   → supprimer",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Categorie"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Categorie"
+            }
+          }
+        },
+        "tags": [
+          "categories"
+        ]
+      },
+      "patch": {
+        "operationId": "categories_partial_update",
+        "description": "GET    /api/categories/        → liste\nPOST   /api/categories/        → créer\nGET    /api/categories/{id}/   → détail\nPUT    /api/categories/{id}/   → modifier\nDELETE /api/categories/{id}/   → supprimer",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Categorie"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Categorie"
+            }
+          }
+        },
+        "tags": [
+          "categories"
+        ]
+      },
+      "delete": {
+        "operationId": "categories_delete",
+        "description": "GET    /api/categories/        → liste\nPOST   /api/categories/        → créer\nGET    /api/categories/{id}/   → détail\nPUT    /api/categories/{id}/   → modifier\nDELETE /api/categories/{id}/   → supprimer",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "categories"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Catégorie.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/comptabilite/": {
+      "get": {
+        "operationId": "comptabilite_list",
+        "description": "GET    /api/comptabilite/               → liste rapports\nPOST   /api/comptabilite/               → créer un rapport\nGET    /api/comptabilite/{id}/          → détail\nPOST   /api/comptabilite/{id}/calculer/ → recalculer bénéfice net",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/SystemeComptable"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "comptabilite"
+        ]
+      },
+      "post": {
+        "operationId": "comptabilite_create",
+        "description": "GET    /api/comptabilite/               → liste rapports\nPOST   /api/comptabilite/               → créer un rapport\nGET    /api/comptabilite/{id}/          → détail\nPOST   /api/comptabilite/{id}/calculer/ → recalculer bénéfice net",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SystemeComptable"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/SystemeComptable"
+            }
+          }
+        },
+        "tags": [
+          "comptabilite"
+        ]
+      },
+      "parameters": []
+    },
+    "/comptabilite/{id}/": {
+      "get": {
+        "operationId": "comptabilite_read",
+        "description": "GET    /api/comptabilite/               → liste rapports\nPOST   /api/comptabilite/               → créer un rapport\nGET    /api/comptabilite/{id}/          → détail\nPOST   /api/comptabilite/{id}/calculer/ → recalculer bénéfice net",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/SystemeComptable"
+            }
+          }
+        },
+        "tags": [
+          "comptabilite"
+        ]
+      },
+      "put": {
+        "operationId": "comptabilite_update",
+        "description": "GET    /api/comptabilite/               → liste rapports\nPOST   /api/comptabilite/               → créer un rapport\nGET    /api/comptabilite/{id}/          → détail\nPOST   /api/comptabilite/{id}/calculer/ → recalculer bénéfice net",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SystemeComptable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/SystemeComptable"
+            }
+          }
+        },
+        "tags": [
+          "comptabilite"
+        ]
+      },
+      "patch": {
+        "operationId": "comptabilite_partial_update",
+        "description": "GET    /api/comptabilite/               → liste rapports\nPOST   /api/comptabilite/               → créer un rapport\nGET    /api/comptabilite/{id}/          → détail\nPOST   /api/comptabilite/{id}/calculer/ → recalculer bénéfice net",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SystemeComptable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/SystemeComptable"
+            }
+          }
+        },
+        "tags": [
+          "comptabilite"
+        ]
+      },
+      "delete": {
+        "operationId": "comptabilite_delete",
+        "description": "GET    /api/comptabilite/               → liste rapports\nPOST   /api/comptabilite/               → créer un rapport\nGET    /api/comptabilite/{id}/          → détail\nPOST   /api/comptabilite/{id}/calculer/ → recalculer bénéfice net",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "comptabilite"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Système comptable.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/comptabilite/{id}/calculer/": {
+      "post": {
+        "operationId": "comptabilite_calculer",
+        "description": "POST /api/comptabilite/{id}/calculer/ — Recalcule le bénéfice net.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SystemeComptable"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/SystemeComptable"
+            }
+          }
+        },
+        "tags": [
+          "comptabilite"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Système comptable.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/dj-rest-auth/login/": {
+      "post": {
+        "operationId": "dj-rest-auth_login_create",
+        "description": "Check the credentials and return the REST Token\nif the credentials are valid and authenticated.\nCalls Django Auth login method to register User ID\nin Django session framework\n\nAccept the following POST parameters: username, password\nReturn the REST Framework Token Object's key.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Login"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Login"
+            }
+          }
+        },
+        "tags": [
+          "dj-rest-auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/dj-rest-auth/logout/": {
+      "get": {
+        "operationId": "dj-rest-auth_logout_list",
+        "summary": "Calls Django logout method and delete the Token object\nassigned to the current User object.",
+        "description": "Accepts/Returns nothing.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "dj-rest-auth"
+        ]
+      },
+      "post": {
+        "operationId": "dj-rest-auth_logout_create",
+        "summary": "Calls Django logout method and delete the Token object\nassigned to the current User object.",
+        "description": "Accepts/Returns nothing.",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "dj-rest-auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/dj-rest-auth/password/change/": {
+      "post": {
+        "operationId": "dj-rest-auth_password_change_create",
+        "summary": "Calls Django Auth SetPasswordForm save method.",
+        "description": "Accepts the following POST parameters: new_password1, new_password2\nReturns the success/fail message.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PasswordChange"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/PasswordChange"
+            }
+          }
+        },
+        "tags": [
+          "dj-rest-auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/dj-rest-auth/password/reset/": {
+      "post": {
+        "operationId": "dj-rest-auth_password_reset_create",
+        "summary": "Calls Django Auth PasswordResetForm save method.",
+        "description": "Accepts the following POST parameters: email\nReturns the success/fail message.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PasswordReset"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/PasswordReset"
+            }
+          }
+        },
+        "tags": [
+          "dj-rest-auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/dj-rest-auth/password/reset/confirm/": {
+      "post": {
+        "operationId": "dj-rest-auth_password_reset_confirm_create",
+        "summary": "Password reset e-mail link is confirmed, therefore\nthis resets the user's password.",
+        "description": "Accepts the following POST parameters: token, uid,\n    new_password1, new_password2\nReturns the success/fail message.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PasswordResetConfirm"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/PasswordResetConfirm"
+            }
+          }
+        },
+        "tags": [
+          "dj-rest-auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/dj-rest-auth/registration/": {
+      "post": {
+        "operationId": "dj-rest-auth_registration_create",
+        "summary": "Registers a new user.",
+        "description": "Accepts the following POST parameters: username, email, password1, password2.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Register"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Register"
+            }
+          }
+        },
+        "tags": [
+          "dj-rest-auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/dj-rest-auth/registration/resend-email/": {
+      "post": {
+        "operationId": "dj-rest-auth_registration_resend-email_create",
+        "summary": "Resends another email to an unverified email.",
+        "description": "Accepts the following POST parameter: email.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ResendEmailVerification"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ResendEmailVerification"
+            }
+          }
+        },
+        "tags": [
+          "dj-rest-auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/dj-rest-auth/registration/verify-email/": {
+      "post": {
+        "operationId": "dj-rest-auth_registration_verify-email_create",
+        "summary": "Verifies the email associated with the provided key.",
+        "description": "Accepts the following POST parameter: key.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/VerifyEmail"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/VerifyEmail"
+            }
+          }
+        },
+        "tags": [
+          "dj-rest-auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/dj-rest-auth/token/refresh/": {
+      "post": {
+        "operationId": "dj-rest-auth_token_refresh_create",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CookieTokenRefresh"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/CookieTokenRefresh"
+            }
+          }
+        },
+        "tags": [
+          "dj-rest-auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/dj-rest-auth/token/verify/": {
+      "post": {
+        "operationId": "dj-rest-auth_token_verify_create",
+        "description": "Takes a token and indicates if it is valid.  This view provides no\ninformation about a token's fitness for a particular use.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TokenVerify"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/TokenVerify"
+            }
+          }
+        },
+        "tags": [
+          "dj-rest-auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/dj-rest-auth/user/": {
+      "get": {
+        "operationId": "dj-rest-auth_user_read",
+        "summary": "Reads and updates UserModel fields\nAccepts GET, PUT, PATCH methods.",
+        "description": "Default accepted fields: username, first_name, last_name\nDefault display fields: pk, username, email, first_name, last_name\nRead-only fields: pk, email\n\nReturns UserModel fields.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/UserDetails"
+            }
+          }
+        },
+        "tags": [
+          "dj-rest-auth"
+        ]
+      },
+      "put": {
+        "operationId": "dj-rest-auth_user_update",
+        "summary": "Reads and updates UserModel fields\nAccepts GET, PUT, PATCH methods.",
+        "description": "Default accepted fields: username, first_name, last_name\nDefault display fields: pk, username, email, first_name, last_name\nRead-only fields: pk, email\n\nReturns UserModel fields.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserDetails"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/UserDetails"
+            }
+          }
+        },
+        "tags": [
+          "dj-rest-auth"
+        ]
+      },
+      "patch": {
+        "operationId": "dj-rest-auth_user_partial_update",
+        "summary": "Reads and updates UserModel fields\nAccepts GET, PUT, PATCH methods.",
+        "description": "Default accepted fields: username, first_name, last_name\nDefault display fields: pk, username, email, first_name, last_name\nRead-only fields: pk, email\n\nReturns UserModel fields.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserDetails"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/UserDetails"
+            }
+          }
+        },
+        "tags": [
+          "dj-rest-auth"
+        ]
+      },
+      "parameters": []
+    },
+    "/locataires/": {
+      "get": {
+        "operationId": "locataires_list",
+        "description": "CRUD complet pour les locataires.\nGET    /api/locataires/             → liste\nPOST   /api/locataires/             → créer\nGET    /api/locataires/{id}/        → détail\nPUT    /api/locataires/{id}/        → modifier\nDELETE /api/locataires/{id}/        → supprimer\nGET    /api/locataires/{id}/bail/   → bails du locataire\nGET    /api/locataires/{id}/paiements/ → paiements du locataire",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Locataire"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "locataires"
+        ]
+      },
+      "post": {
+        "operationId": "locataires_create",
+        "description": "CRUD complet pour les locataires.\nGET    /api/locataires/             → liste\nPOST   /api/locataires/             → créer\nGET    /api/locataires/{id}/        → détail\nPUT    /api/locataires/{id}/        → modifier\nDELETE /api/locataires/{id}/        → supprimer\nGET    /api/locataires/{id}/bail/   → bails du locataire\nGET    /api/locataires/{id}/paiements/ → paiements du locataire",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LocataireCreate"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/LocataireCreate"
+            }
+          }
+        },
+        "tags": [
+          "locataires"
+        ]
+      },
+      "parameters": []
+    },
+    "/locataires/{id}/": {
+      "get": {
+        "operationId": "locataires_read",
+        "description": "CRUD complet pour les locataires.\nGET    /api/locataires/             → liste\nPOST   /api/locataires/             → créer\nGET    /api/locataires/{id}/        → détail\nPUT    /api/locataires/{id}/        → modifier\nDELETE /api/locataires/{id}/        → supprimer\nGET    /api/locataires/{id}/bail/   → bails du locataire\nGET    /api/locataires/{id}/paiements/ → paiements du locataire",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Locataire"
+            }
+          }
+        },
+        "tags": [
+          "locataires"
+        ]
+      },
+      "put": {
+        "operationId": "locataires_update",
+        "description": "CRUD complet pour les locataires.\nGET    /api/locataires/             → liste\nPOST   /api/locataires/             → créer\nGET    /api/locataires/{id}/        → détail\nPUT    /api/locataires/{id}/        → modifier\nDELETE /api/locataires/{id}/        → supprimer\nGET    /api/locataires/{id}/bail/   → bails du locataire\nGET    /api/locataires/{id}/paiements/ → paiements du locataire",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LocataireCreate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/LocataireCreate"
+            }
+          }
+        },
+        "tags": [
+          "locataires"
+        ]
+      },
+      "patch": {
+        "operationId": "locataires_partial_update",
+        "description": "CRUD complet pour les locataires.\nGET    /api/locataires/             → liste\nPOST   /api/locataires/             → créer\nGET    /api/locataires/{id}/        → détail\nPUT    /api/locataires/{id}/        → modifier\nDELETE /api/locataires/{id}/        → supprimer\nGET    /api/locataires/{id}/bail/   → bails du locataire\nGET    /api/locataires/{id}/paiements/ → paiements du locataire",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LocataireCreate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/LocataireCreate"
+            }
+          }
+        },
+        "tags": [
+          "locataires"
+        ]
+      },
+      "delete": {
+        "operationId": "locataires_delete",
+        "description": "CRUD complet pour les locataires.\nGET    /api/locataires/             → liste\nPOST   /api/locataires/             → créer\nGET    /api/locataires/{id}/        → détail\nPUT    /api/locataires/{id}/        → modifier\nDELETE /api/locataires/{id}/        → supprimer\nGET    /api/locataires/{id}/bail/   → bails du locataire\nGET    /api/locataires/{id}/paiements/ → paiements du locataire",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "locataires"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Locataire.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/locataires/{id}/bail/": {
+      "get": {
+        "operationId": "locataires_bail",
+        "description": "GET /api/locataires/{id}/bail/ — Bails du locataire.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Locataire"
+            }
+          }
+        },
+        "tags": [
+          "locataires"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Locataire.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/locataires/{id}/paiements/": {
+      "get": {
+        "operationId": "locataires_paiements",
+        "description": "GET /api/locataires/{id}/paiements/ — Paiements du locataire.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Locataire"
+            }
+          }
+        },
+        "tags": [
+          "locataires"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Locataire.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/maintenances/": {
+      "get": {
+        "operationId": "maintenances_list",
+        "description": "Gestion des demandes de maintenance.\nAdmins : voient tout.\nProprios : voient les demandes pour leurs biens.\nLocataires : voient leurs propres demandes.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Maintenance"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "maintenances"
+        ]
+      },
+      "post": {
+        "operationId": "maintenances_create",
+        "description": "Gestion des demandes de maintenance.\nAdmins : voient tout.\nProprios : voient les demandes pour leurs biens.\nLocataires : voient leurs propres demandes.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Maintenance"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Maintenance"
+            }
+          }
+        },
+        "tags": [
+          "maintenances"
+        ]
+      },
+      "parameters": []
+    },
+    "/maintenances/{id}/": {
+      "get": {
+        "operationId": "maintenances_read",
+        "description": "Gestion des demandes de maintenance.\nAdmins : voient tout.\nProprios : voient les demandes pour leurs biens.\nLocataires : voient leurs propres demandes.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Maintenance"
+            }
+          }
+        },
+        "tags": [
+          "maintenances"
+        ]
+      },
+      "put": {
+        "operationId": "maintenances_update",
+        "description": "Gestion des demandes de maintenance.\nAdmins : voient tout.\nProprios : voient les demandes pour leurs biens.\nLocataires : voient leurs propres demandes.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Maintenance"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Maintenance"
+            }
+          }
+        },
+        "tags": [
+          "maintenances"
+        ]
+      },
+      "patch": {
+        "operationId": "maintenances_partial_update",
+        "description": "Gestion des demandes de maintenance.\nAdmins : voient tout.\nProprios : voient les demandes pour leurs biens.\nLocataires : voient leurs propres demandes.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Maintenance"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Maintenance"
+            }
+          }
+        },
+        "tags": [
+          "maintenances"
+        ]
+      },
+      "delete": {
+        "operationId": "maintenances_delete",
+        "description": "Gestion des demandes de maintenance.\nAdmins : voient tout.\nProprios : voient les demandes pour leurs biens.\nLocataires : voient leurs propres demandes.",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "maintenances"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Maintenance.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/maintenances/{id}/envoyer-justificatif/": {
+      "post": {
+        "operationId": "maintenances_envoyer_justificatif",
+        "description": "POST /api/maintenances/{id}/envoyer-justificatif/",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Maintenance"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Maintenance"
+            }
+          }
+        },
+        "tags": [
+          "maintenances"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Maintenance.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/messages/": {
+      "get": {
+        "operationId": "messages_list",
+        "description": "GET    /api/messages/                               → messages de l'utilisateur\nPOST   /api/messages/                               → envoyer un message\nGET    /api/messages/{id}/                          → détail\nPOST   /api/messages/{id}/marquer-lu/               → marquer comme lu\nGET    /api/messages/conversation/{user_id}/        → conversation avec un utilisateur",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Message"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "messages"
+        ]
+      },
+      "post": {
+        "operationId": "messages_create",
+        "description": "GET    /api/messages/                               → messages de l'utilisateur\nPOST   /api/messages/                               → envoyer un message\nGET    /api/messages/{id}/                          → détail\nPOST   /api/messages/{id}/marquer-lu/               → marquer comme lu\nGET    /api/messages/conversation/{user_id}/        → conversation avec un utilisateur",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Message"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Message"
+            }
+          }
+        },
+        "tags": [
+          "messages"
+        ]
+      },
+      "parameters": []
+    },
+    "/messages/conversation/{user_id}/": {
+      "get": {
+        "operationId": "messages_conversation",
+        "description": "GET /api/messages/conversation/{user_id}/ — Messages avec un utilisateur spécifique.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Message"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "messages"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "user_id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/messages/conversations/": {
+      "get": {
+        "operationId": "messages_conversations",
+        "description": "GET /api/messages/conversations/ — Liste des conversations groupées par utilisateur.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Message"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "messages"
+        ]
+      },
+      "parameters": []
+    },
+    "/messages/{id}/": {
+      "get": {
+        "operationId": "messages_read",
+        "description": "GET    /api/messages/                               → messages de l'utilisateur\nPOST   /api/messages/                               → envoyer un message\nGET    /api/messages/{id}/                          → détail\nPOST   /api/messages/{id}/marquer-lu/               → marquer comme lu\nGET    /api/messages/conversation/{user_id}/        → conversation avec un utilisateur",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Message"
+            }
+          }
+        },
+        "tags": [
+          "messages"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/notifications/": {
+      "get": {
+        "operationId": "notifications_list",
+        "description": "GET    /api/notifications/                      → liste des notifications de l'utilisateur connecté\nGET    /api/notifications/{id}/                 → détail\nPOST   /api/notifications/{id}/marquer-lu/      → marquer comme lue\nPOST   /api/notifications/marquer-tout-lu/      → marquer toutes comme lues\nGET    /api/notifications/non-lues/             → seulement les non lues",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Notification"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "notifications"
+        ]
+      },
+      "parameters": []
+    },
+    "/notifications/marquer-tout-lu/": {
+      "post": {
+        "operationId": "notifications_marquer_tout_lu",
+        "description": "POST /api/notifications/marquer-tout-lu/",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Notification"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Notification"
+            }
+          }
+        },
+        "tags": [
+          "notifications"
+        ]
+      },
+      "parameters": []
+    },
+    "/notifications/non-lues/": {
+      "get": {
+        "operationId": "notifications_non_lues",
+        "description": "GET /api/notifications/non-lues/",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Notification"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "notifications"
+        ]
+      },
+      "parameters": []
+    },
+    "/notifications/{id}/": {
+      "get": {
+        "operationId": "notifications_read",
+        "description": "GET    /api/notifications/                      → liste des notifications de l'utilisateur connecté\nGET    /api/notifications/{id}/                 → détail\nPOST   /api/notifications/{id}/marquer-lu/      → marquer comme lue\nPOST   /api/notifications/marquer-tout-lu/      → marquer toutes comme lues\nGET    /api/notifications/non-lues/             → seulement les non lues",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Notification"
+            }
+          }
+        },
+        "tags": [
+          "notifications"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/notifications/{id}/marquer-lu/": {
+      "post": {
+        "operationId": "notifications_marquer_lu",
+        "description": "POST /api/notifications/{id}/marquer-lu/",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Notification"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Notification"
+            }
+          }
+        },
+        "tags": [
+          "notifications"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/paiements/": {
+      "get": {
+        "operationId": "paiements_list",
+        "description": "GET    /api/paiements/                  → liste\nPOST   /api/paiements/                  → déclarer un paiement\nGET    /api/paiements/{id}/             → détail\nPOST   /api/paiements/{id}/valider/     → valider (admin/proprio)\nPOST   /api/paiements/{id}/annuler/     → annuler\nGET    /api/paiements/{id}/quittance/   → quittance associée",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Paiement"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "paiements"
+        ]
+      },
+      "post": {
+        "operationId": "paiements_create",
+        "description": "GET    /api/paiements/                  → liste\nPOST   /api/paiements/                  → déclarer un paiement\nGET    /api/paiements/{id}/             → détail\nPOST   /api/paiements/{id}/valider/     → valider (admin/proprio)\nPOST   /api/paiements/{id}/annuler/     → annuler\nGET    /api/paiements/{id}/quittance/   → quittance associée",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Paiement"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Paiement"
+            }
+          }
+        },
+        "tags": [
+          "paiements"
+        ]
+      },
+      "parameters": []
+    },
+    "/paiements/{id}/": {
+      "get": {
+        "operationId": "paiements_read",
+        "description": "GET    /api/paiements/                  → liste\nPOST   /api/paiements/                  → déclarer un paiement\nGET    /api/paiements/{id}/             → détail\nPOST   /api/paiements/{id}/valider/     → valider (admin/proprio)\nPOST   /api/paiements/{id}/annuler/     → annuler\nGET    /api/paiements/{id}/quittance/   → quittance associée",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Paiement"
+            }
+          }
+        },
+        "tags": [
+          "paiements"
+        ]
+      },
+      "put": {
+        "operationId": "paiements_update",
+        "description": "GET    /api/paiements/                  → liste\nPOST   /api/paiements/                  → déclarer un paiement\nGET    /api/paiements/{id}/             → détail\nPOST   /api/paiements/{id}/valider/     → valider (admin/proprio)\nPOST   /api/paiements/{id}/annuler/     → annuler\nGET    /api/paiements/{id}/quittance/   → quittance associée",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Paiement"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Paiement"
+            }
+          }
+        },
+        "tags": [
+          "paiements"
+        ]
+      },
+      "patch": {
+        "operationId": "paiements_partial_update",
+        "description": "GET    /api/paiements/                  → liste\nPOST   /api/paiements/                  → déclarer un paiement\nGET    /api/paiements/{id}/             → détail\nPOST   /api/paiements/{id}/valider/     → valider (admin/proprio)\nPOST   /api/paiements/{id}/annuler/     → annuler\nGET    /api/paiements/{id}/quittance/   → quittance associée",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Paiement"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Paiement"
+            }
+          }
+        },
+        "tags": [
+          "paiements"
+        ]
+      },
+      "delete": {
+        "operationId": "paiements_delete",
+        "description": "GET    /api/paiements/                  → liste\nPOST   /api/paiements/                  → déclarer un paiement\nGET    /api/paiements/{id}/             → détail\nPOST   /api/paiements/{id}/valider/     → valider (admin/proprio)\nPOST   /api/paiements/{id}/annuler/     → annuler\nGET    /api/paiements/{id}/quittance/   → quittance associée",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "paiements"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Paiement.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/paiements/{id}/annuler/": {
+      "post": {
+        "operationId": "paiements_annuler",
+        "description": "POST /api/paiements/{id}/annuler/",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Paiement"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Paiement"
+            }
+          }
+        },
+        "tags": [
+          "paiements"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Paiement.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/paiements/{id}/quittance/": {
+      "get": {
+        "operationId": "paiements_quittance",
+        "description": "GET /api/paiements/{id}/quittance/",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Paiement"
+            }
+          }
+        },
+        "tags": [
+          "paiements"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Paiement.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/paiements/{id}/valider/": {
+      "post": {
+        "operationId": "paiements_valider",
+        "description": "POST /api/paiements/{id}/valider/",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Paiement"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Paiement"
+            }
+          }
+        },
+        "tags": [
+          "paiements"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Paiement.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/proprietaires/": {
+      "get": {
+        "operationId": "proprietaires_list",
+        "description": "CRUD complet pour les propriétaires.\nGET    /api/proprietaires/          → liste\nPOST   /api/proprietaires/          → créer\nGET    /api/proprietaires/{id}/     → détail\nPUT    /api/proprietaires/{id}/     → modifier\nDELETE /api/proprietaires/{id}/     → supprimer\nPOST   /api/proprietaires/{id}/desactiver/ → désactiver compte",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Proprietaire"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "proprietaires"
+        ]
+      },
+      "post": {
+        "operationId": "proprietaires_create",
+        "description": "CRUD complet pour les propriétaires.\nGET    /api/proprietaires/          → liste\nPOST   /api/proprietaires/          → créer\nGET    /api/proprietaires/{id}/     → détail\nPUT    /api/proprietaires/{id}/     → modifier\nDELETE /api/proprietaires/{id}/     → supprimer\nPOST   /api/proprietaires/{id}/desactiver/ → désactiver compte",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ProprietaireCreate"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ProprietaireCreate"
+            }
+          }
+        },
+        "tags": [
+          "proprietaires"
+        ]
+      },
+      "parameters": []
+    },
+    "/proprietaires/{id}/": {
+      "get": {
+        "operationId": "proprietaires_read",
+        "description": "CRUD complet pour les propriétaires.\nGET    /api/proprietaires/          → liste\nPOST   /api/proprietaires/          → créer\nGET    /api/proprietaires/{id}/     → détail\nPUT    /api/proprietaires/{id}/     → modifier\nDELETE /api/proprietaires/{id}/     → supprimer\nPOST   /api/proprietaires/{id}/desactiver/ → désactiver compte",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Proprietaire"
+            }
+          }
+        },
+        "tags": [
+          "proprietaires"
+        ]
+      },
+      "put": {
+        "operationId": "proprietaires_update",
+        "description": "CRUD complet pour les propriétaires.\nGET    /api/proprietaires/          → liste\nPOST   /api/proprietaires/          → créer\nGET    /api/proprietaires/{id}/     → détail\nPUT    /api/proprietaires/{id}/     → modifier\nDELETE /api/proprietaires/{id}/     → supprimer\nPOST   /api/proprietaires/{id}/desactiver/ → désactiver compte",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ProprietaireCreate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ProprietaireCreate"
+            }
+          }
+        },
+        "tags": [
+          "proprietaires"
+        ]
+      },
+      "patch": {
+        "operationId": "proprietaires_partial_update",
+        "description": "CRUD complet pour les propriétaires.\nGET    /api/proprietaires/          → liste\nPOST   /api/proprietaires/          → créer\nGET    /api/proprietaires/{id}/     → détail\nPUT    /api/proprietaires/{id}/     → modifier\nDELETE /api/proprietaires/{id}/     → supprimer\nPOST   /api/proprietaires/{id}/desactiver/ → désactiver compte",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ProprietaireCreate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ProprietaireCreate"
+            }
+          }
+        },
+        "tags": [
+          "proprietaires"
+        ]
+      },
+      "delete": {
+        "operationId": "proprietaires_delete",
+        "description": "CRUD complet pour les propriétaires.\nGET    /api/proprietaires/          → liste\nPOST   /api/proprietaires/          → créer\nGET    /api/proprietaires/{id}/     → détail\nPUT    /api/proprietaires/{id}/     → modifier\nDELETE /api/proprietaires/{id}/     → supprimer\nPOST   /api/proprietaires/{id}/desactiver/ → désactiver compte",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "proprietaires"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Propriétaire.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/proprietaires/{id}/biens/": {
+      "get": {
+        "operationId": "proprietaires_biens",
+        "description": "GET /api/proprietaires/{id}/biens/ — Liste les biens du propriétaire.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Proprietaire"
+            }
+          }
+        },
+        "tags": [
+          "proprietaires"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Propriétaire.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/proprietaires/{id}/comptabilite/": {
+      "get": {
+        "operationId": "proprietaires_comptabilite",
+        "description": "GET /api/proprietaires/{id}/comptabilite/ — Rapports comptables.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Proprietaire"
+            }
+          }
+        },
+        "tags": [
+          "proprietaires"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Propriétaire.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/proprietaires/{id}/desactiver/": {
+      "post": {
+        "operationId": "proprietaires_desactiver",
+        "description": "POST /api/proprietaires/{id}/desactiver/ — Désactive le compte.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Proprietaire"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Proprietaire"
+            }
+          }
+        },
+        "tags": [
+          "proprietaires"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Propriétaire.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/quittances/": {
+      "get": {
+        "operationId": "quittances_list",
+        "description": "GET /api/quittances/        → liste (lecture seule)\nGET /api/quittances/{id}/   → détail",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Quittance"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "quittances"
+        ]
+      },
+      "parameters": []
+    },
+    "/quittances/{id}/": {
+      "get": {
+        "operationId": "quittances_read",
+        "description": "GET /api/quittances/        → liste (lecture seule)\nGET /api/quittances/{id}/   → détail",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Quittance"
+            }
+          }
+        },
+        "tags": [
+          "quittances"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Quittance.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/types-appartement/": {
+      "get": {
+        "operationId": "types-appartement_list",
+        "description": "GET    /api/types-appartement/        → liste\nPOST   /api/types-appartement/        → créer\nGET    /api/types-appartement/{id}/   → détail",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/TypeAppartement"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "types-appartement"
+        ]
+      },
+      "post": {
+        "operationId": "types-appartement_create",
+        "description": "GET    /api/types-appartement/        → liste\nPOST   /api/types-appartement/        → créer\nGET    /api/types-appartement/{id}/   → détail",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TypeAppartement"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/TypeAppartement"
+            }
+          }
+        },
+        "tags": [
+          "types-appartement"
+        ]
+      },
+      "parameters": []
+    },
+    "/types-appartement/{id}/": {
+      "get": {
+        "operationId": "types-appartement_read",
+        "description": "GET    /api/types-appartement/        → liste\nPOST   /api/types-appartement/        → créer\nGET    /api/types-appartement/{id}/   → détail",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/TypeAppartement"
+            }
+          }
+        },
+        "tags": [
+          "types-appartement"
+        ]
+      },
+      "put": {
+        "operationId": "types-appartement_update",
+        "description": "GET    /api/types-appartement/        → liste\nPOST   /api/types-appartement/        → créer\nGET    /api/types-appartement/{id}/   → détail",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TypeAppartement"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/TypeAppartement"
+            }
+          }
+        },
+        "tags": [
+          "types-appartement"
+        ]
+      },
+      "patch": {
+        "operationId": "types-appartement_partial_update",
+        "description": "GET    /api/types-appartement/        → liste\nPOST   /api/types-appartement/        → créer\nGET    /api/types-appartement/{id}/   → détail",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TypeAppartement"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/TypeAppartement"
+            }
+          }
+        },
+        "tags": [
+          "types-appartement"
+        ]
+      },
+      "delete": {
+        "operationId": "types-appartement_delete",
+        "description": "GET    /api/types-appartement/        → liste\nPOST   /api/types-appartement/        → créer\nGET    /api/types-appartement/{id}/   → détail",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "types-appartement"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Type d'appartement.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/utilisateurs/": {
+      "get": {
+        "operationId": "utilisateurs_list",
+        "description": "Lecture seule pour les administrateurs.\nGET    /api/utilisateurs/          → liste de tous les utilisateurs\nGET    /api/utilisateurs/{id}/     → détail",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Utilisateur"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "utilisateurs"
+        ]
+      },
+      "parameters": []
+    },
+    "/utilisateurs/{id}/": {
+      "get": {
+        "operationId": "utilisateurs_read",
+        "description": "Lecture seule pour les administrateurs.\nGET    /api/utilisateurs/          → liste de tous les utilisateurs\nGET    /api/utilisateurs/{id}/     → détail",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Utilisateur"
+            }
+          }
+        },
+        "tags": [
+          "utilisateurs"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Utilisateur.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "Bail": {
+      "required": [
+        "bien",
+        "locataire",
+        "date_entree",
+        "date_sortie",
+        "depot_garantie",
+        "loyer_initial"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "bien": {
+          "title": "Bien",
+          "type": "integer"
+        },
+        "locataire": {
+          "title": "Locataire",
+          "type": "string"
+        },
+        "date_entree": {
+          "title": "Date d'entrée",
+          "type": "string",
+          "format": "date"
+        },
+        "date_sortie": {
+          "title": "Date de sortie prévue",
+          "type": "string",
+          "format": "date"
+        },
+        "depot_garantie": {
+          "title": "Dépôt de garantie (CFA)",
+          "type": "string",
+          "format": "decimal"
+        },
+        "loyer_initial": {
+          "title": "Loyer initial (CFA)",
+          "description": "Loyer au moment de la signature du bail",
+          "type": "string",
+          "format": "decimal"
+        },
+        "taux_revision_annuel": {
+          "title": "Taux de révision annuel (%)",
+          "description": "Ex : 2.0 pour 2% par an",
+          "type": "number"
+        },
+        "statut": {
+          "title": "Statut",
+          "type": "string",
+          "enum": [
+            "EN_COURS",
+            "EXPIRE",
+            "RESILE",
+            "EN_ATTENTE"
+          ],
+          "readOnly": true
+        },
+        "statut_display": {
+          "title": "Statut display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "loyer_revise": {
+          "title": "Loyer revise",
+          "type": "string",
+          "readOnly": true
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "updated_at": {
+          "title": "Modifié le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "BienList": {
+      "required": [
+        "adresse",
+        "loyer_hc"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "adresse": {
+          "title": "Adresse",
+          "description": "Rue, quartier, ville",
+          "type": "string",
+          "maxLength": 255,
+          "minLength": 1
+        },
+        "loyer_hc": {
+          "title": "Loyer hors charges (CFA)",
+          "type": "string",
+          "format": "decimal"
+        },
+        "charges": {
+          "title": "Provisions charges (CFA)",
+          "type": "string",
+          "format": "decimal"
+        },
+        "statut": {
+          "title": "Statut",
+          "type": "string",
+          "enum": [
+            "LOUE",
+            "VACANT",
+            "VENDRE",
+            "SOUS_COMPROMIS",
+            "VENDU",
+            "EN_TRAVAUX"
+          ]
+        },
+        "statut_display": {
+          "title": "Statut display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "categorie_libelle": {
+          "title": "Categorie libelle",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "type_appartement_libelle": {
+          "title": "Type appartement libelle",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "latitude": {
+          "title": "Latitude GPS",
+          "type": "number",
+          "x-nullable": true
+        },
+        "longitude": {
+          "title": "Longitude GPS",
+          "type": "number",
+          "x-nullable": true
+        },
+        "photo_principale": {
+          "title": "Photo principale",
+          "type": "string",
+          "readOnly": true
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "Categorie": {
+      "required": [
+        "libelle"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "libelle": {
+          "title": "Libellé",
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "description": {
+          "title": "Description",
+          "type": "string",
+          "x-nullable": true
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "TypeAppartement": {
+      "required": [
+        "libelle"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "libelle": {
+          "title": "Libellé",
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "description": {
+          "title": "Description",
+          "type": "string",
+          "x-nullable": true
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "PhotoBien": {
+      "required": [
+        "bien"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "bien": {
+          "title": "Bien",
+          "type": "integer"
+        },
+        "image": {
+          "title": "Fichier image",
+          "description": "Formats acceptés : JPG, PNG, WEBP — Max 5 Mo",
+          "type": "string",
+          "readOnly": true,
+          "format": "uri"
+        },
+        "image_url": {
+          "title": "Image url",
+          "type": "string",
+          "readOnly": true
+        },
+        "image_base64_input": {
+          "title": "Image base64 input",
+          "description": "Image encodée en base64 : 'data:image/jpeg;base64,...'",
+          "type": "string",
+          "minLength": 1
+        },
+        "image_base64": {
+          "title": "Image encodée (Base64)",
+          "description": "Rempli automatiquement à la sauvegarde via l'API",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "legende": {
+          "title": "Légende",
+          "description": "Ex : Chambre principale, Cuisine, Vue de la terrasse",
+          "type": "string",
+          "maxLength": 200
+        },
+        "ordre": {
+          "title": "Ordre d'affichage",
+          "description": "0 = photo principale",
+          "type": "integer",
+          "maximum": 32767,
+          "minimum": 0
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "VideoBien": {
+      "required": [
+        "bien"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "bien": {
+          "title": "Bien",
+          "type": "integer"
+        },
+        "video": {
+          "title": "Fichier vidéo",
+          "description": "Formats acceptés : MP4, AVI, MOV, WEBM — Max 50 Mo",
+          "type": "string",
+          "readOnly": true,
+          "format": "uri"
+        },
+        "video_url": {
+          "title": "Video url",
+          "type": "string",
+          "readOnly": true
+        },
+        "thumbnail": {
+          "title": "Miniature",
+          "description": "Image de prévisualisation de la vidéo",
+          "type": "string",
+          "readOnly": true,
+          "x-nullable": true,
+          "format": "uri"
+        },
+        "thumbnail_url": {
+          "title": "Thumbnail url",
+          "type": "string",
+          "readOnly": true
+        },
+        "titre": {
+          "title": "Titre",
+          "description": "Ex : Visite virtuelle, Tour de la propriété",
+          "type": "string",
+          "maxLength": 200
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "duree": {
+          "title": "Durée (secondes)",
+          "description": "Durée de la vidéo en secondes",
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "x-nullable": true
+        },
+        "ordre": {
+          "title": "Ordre d'affichage",
+          "type": "integer",
+          "maximum": 32767,
+          "minimum": 0
+        },
+        "file_size_mb": {
+          "title": "File size mb",
+          "type": "string",
+          "readOnly": true
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "BienDetail": {
+      "required": [
+        "adresse",
+        "loyer_hc"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "adresse": {
+          "title": "Adresse",
+          "description": "Rue, quartier, ville",
+          "type": "string",
+          "maxLength": 255,
+          "minLength": 1
+        },
+        "description": {
+          "title": "Description",
+          "type": "string",
+          "maxLength": 5000
+        },
+        "equipements": {
+          "title": "Équipements",
+          "description": "Ex : ['ascenseur', 'climatisation', 'parking']",
+          "type": "object"
+        },
+        "loyer_hc": {
+          "title": "Loyer hors charges (CFA)",
+          "type": "string",
+          "format": "decimal"
+        },
+        "charges": {
+          "title": "Provisions charges (CFA)",
+          "type": "string",
+          "format": "decimal"
+        },
+        "latitude": {
+          "title": "Latitude GPS",
+          "type": "number",
+          "x-nullable": true
+        },
+        "longitude": {
+          "title": "Longitude GPS",
+          "type": "number",
+          "x-nullable": true
+        },
+        "statut": {
+          "title": "Statut",
+          "type": "string",
+          "enum": [
+            "LOUE",
+            "VACANT",
+            "VENDRE",
+            "SOUS_COMPROMIS",
+            "VENDU",
+            "EN_TRAVAUX"
+          ],
+          "readOnly": true
+        },
+        "statut_display": {
+          "title": "Statut display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "categorie": {
+          "$ref": "#/definitions/Categorie"
+        },
+        "categorie_id": {
+          "title": "Categorie id",
+          "type": "integer"
+        },
+        "type_appartement": {
+          "$ref": "#/definitions/TypeAppartement"
+        },
+        "type_appartement_id": {
+          "title": "Type appartement id",
+          "type": "integer",
+          "x-nullable": true
+        },
+        "proprietaire_id": {
+          "title": "Proprietaire id",
+          "type": "string",
+          "readOnly": true
+        },
+        "photos_bien": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PhotoBien"
+          },
+          "readOnly": true
+        },
+        "videos_bien": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/VideoBien"
+          },
+          "readOnly": true
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "updated_at": {
+          "title": "Modifié le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "Candidature": {
+      "required": [
+        "bien"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "bien": {
+          "title": "Bien",
+          "type": "integer"
+        },
+        "bien_adresse": {
+          "title": "Bien adresse",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "bien_loyer": {
+          "title": "Bien loyer",
+          "type": "number",
+          "readOnly": true
+        },
+        "bien_photo": {
+          "title": "Bien photo",
+          "type": "string",
+          "readOnly": true
+        },
+        "locataire": {
+          "title": "Locataire",
+          "type": "string",
+          "readOnly": true
+        },
+        "locataire_nom": {
+          "title": "Locataire nom",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "statut": {
+          "title": "Statut",
+          "type": "string",
+          "enum": [
+            "EN_ATTENTE",
+            "ACCEPTE",
+            "REFUSE"
+          ]
+        },
+        "statut_display": {
+          "title": "Statut display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "created_at": {
+          "title": "Created at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "date_creation": {
+          "title": "Date creation",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "updated_at": {
+          "title": "Updated at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "SystemeComptable": {
+      "required": [
+        "proprietaire",
+        "periode_debut"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "proprietaire": {
+          "title": "Propriétaire",
+          "type": "string"
+        },
+        "proprietaire_nom": {
+          "title": "Proprietaire nom",
+          "type": "string",
+          "readOnly": true
+        },
+        "periode_debut": {
+          "title": "Début de période",
+          "description": "Date de début de la période comptable",
+          "type": "string",
+          "format": "date"
+        },
+        "periode_fin": {
+          "title": "Fin de période",
+          "description": "Date de fin de la période comptable (optionnel)",
+          "type": "string",
+          "format": "date",
+          "x-nullable": true
+        },
+        "total_revenus": {
+          "title": "Total revenus (CFA)",
+          "description": "Somme nette propriétaire (90% des loyers validés)",
+          "type": "string",
+          "format": "decimal"
+        },
+        "total_commission_admin": {
+          "title": "Total commission administrateur (CFA)",
+          "description": "Somme des 10% prélevés sur les loyers validés",
+          "type": "string",
+          "format": "decimal"
+        },
+        "total_depense": {
+          "title": "Total dépenses (CFA)",
+          "description": "Somme des dépenses : travaux, taxes, frais divers",
+          "type": "string",
+          "format": "decimal"
+        },
+        "benefice_net": {
+          "title": "Bénéfice net (CFA)",
+          "description": "Calculé : total_revenus - total_depense",
+          "type": "string",
+          "format": "decimal",
+          "readOnly": true
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "updated_at": {
+          "title": "Modifié le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "Login": {
+      "required": [
+        "password"
+      ],
+      "type": "object",
+      "properties": {
+        "username": {
+          "title": "Username",
+          "type": "string"
+        },
+        "email": {
+          "title": "Email",
+          "type": "string",
+          "format": "email"
+        },
+        "password": {
+          "title": "Password",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "PasswordChange": {
+      "required": [
+        "new_password1",
+        "new_password2"
+      ],
+      "type": "object",
+      "properties": {
+        "new_password1": {
+          "title": "New password1",
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "new_password2": {
+          "title": "New password2",
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1
+        }
+      }
+    },
+    "PasswordReset": {
+      "required": [
+        "email"
+      ],
+      "type": "object",
+      "properties": {
+        "email": {
+          "title": "Email",
+          "type": "string",
+          "format": "email",
+          "minLength": 1
+        }
+      }
+    },
+    "PasswordResetConfirm": {
+      "required": [
+        "new_password1",
+        "new_password2",
+        "uid",
+        "token"
+      ],
+      "type": "object",
+      "properties": {
+        "new_password1": {
+          "title": "New password1",
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "new_password2": {
+          "title": "New password2",
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "uid": {
+          "title": "Uid",
+          "type": "string",
+          "minLength": 1
+        },
+        "token": {
+          "title": "Token",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "Register": {
+      "required": [
+        "username",
+        "email",
+        "password1",
+        "password2"
+      ],
+      "type": "object",
+      "properties": {
+        "username": {
+          "title": "Username",
+          "type": "string",
+          "maxLength": 0,
+          "minLength": 1
+        },
+        "email": {
+          "title": "Email",
+          "type": "string",
+          "format": "email",
+          "minLength": 1
+        },
+        "password1": {
+          "title": "Password1",
+          "type": "string",
+          "minLength": 1
+        },
+        "password2": {
+          "title": "Password2",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "ResendEmailVerification": {
+      "required": [
+        "email"
+      ],
+      "type": "object",
+      "properties": {
+        "email": {
+          "title": "Email",
+          "type": "string",
+          "format": "email",
+          "minLength": 1
+        }
+      }
+    },
+    "VerifyEmail": {
+      "required": [
+        "key"
+      ],
+      "type": "object",
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "CookieTokenRefresh": {
+      "type": "object",
+      "properties": {
+        "refresh": {
+          "title": "Refresh",
+          "description": "WIll override cookie.",
+          "type": "string",
+          "minLength": 1
+        },
+        "access": {
+          "title": "Access",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        }
+      }
+    },
+    "TokenVerify": {
+      "required": [
+        "token"
+      ],
+      "type": "object",
+      "properties": {
+        "token": {
+          "title": "Token",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "UserDetails": {
+      "type": "object",
+      "properties": {
+        "pk": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "email": {
+          "title": "Adresse email",
+          "type": "string",
+          "format": "email",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "first_name": {
+          "title": "First name",
+          "type": "string",
+          "readOnly": true
+        },
+        "last_name": {
+          "title": "Last name",
+          "type": "string",
+          "maxLength": 150
+        }
+      }
+    },
+    "Locataire": {
+      "required": [
+        "nom",
+        "prenom",
+        "email",
+        "telephone"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "nom": {
+          "title": "Nom de famille",
+          "type": "string",
+          "maxLength": 150,
+          "minLength": 1
+        },
+        "prenom": {
+          "title": "Prénom",
+          "type": "string",
+          "maxLength": 150,
+          "minLength": 1
+        },
+        "email": {
+          "title": "Adresse email",
+          "type": "string",
+          "format": "email",
+          "maxLength": 254,
+          "minLength": 1
+        },
+        "telephone": {
+          "title": "Numéro de téléphone",
+          "type": "string",
+          "maxLength": 20,
+          "minLength": 1
+        },
+        "adresse": {
+          "title": "Adresse postale",
+          "type": "string",
+          "maxLength": 255
+        },
+        "date_naissance": {
+          "title": "Date de naissance",
+          "type": "string",
+          "format": "date",
+          "x-nullable": true
+        },
+        "profession": {
+          "title": "Profession",
+          "type": "string",
+          "maxLength": 150
+        },
+        "personne_a_prevenir": {
+          "title": "Personne à prévenir (garant)",
+          "description": "Nom et contact du garant ou de la personne à prévenir",
+          "type": "string",
+          "maxLength": 255
+        },
+        "nationalite": {
+          "title": "Nationalité",
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "revenus": {
+          "title": "Revenus mensuels",
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": 0
+        },
+        "cni": {
+          "title": "Pièce d'identité",
+          "type": "string",
+          "readOnly": true,
+          "x-nullable": true,
+          "format": "uri"
+        },
+        "fiche_paie": {
+          "title": "Fiches de paie",
+          "type": "string",
+          "readOnly": true,
+          "x-nullable": true,
+          "format": "uri"
+        },
+        "garant": {
+          "title": "Garant",
+          "type": "string",
+          "readOnly": true
+        },
+        "actif": {
+          "title": "Compte actif",
+          "type": "boolean"
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "role": {
+          "title": "Rôle",
+          "type": "string",
+          "enum": [
+            "ADMIN",
+            "PROPRIETAIRE",
+            "LOCATAIRE"
+          ]
+        },
+        "is_verified": {
+          "title": "Profil vérifié",
+          "description": "Indique si les documents ont été validés par l'administration",
+          "type": "boolean"
+        },
+        "trust_score": {
+          "title": "Score de confiance",
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": 0
+        },
+        "bail_actif": {
+          "title": "Bail actif",
+          "type": "string",
+          "readOnly": true
+        }
+      }
+    },
+    "LocataireCreate": {
+      "required": [
+        "nom",
+        "prenom",
+        "email",
+        "telephone",
+        "password"
+      ],
+      "type": "object",
+      "properties": {
+        "nom": {
+          "title": "Nom de famille",
+          "type": "string",
+          "maxLength": 150,
+          "minLength": 1
+        },
+        "prenom": {
+          "title": "Prénom",
+          "type": "string",
+          "maxLength": 150,
+          "minLength": 1
+        },
+        "email": {
+          "title": "Adresse email",
+          "type": "string",
+          "format": "email",
+          "maxLength": 254,
+          "minLength": 1
+        },
+        "telephone": {
+          "title": "Numéro de téléphone",
+          "type": "string",
+          "maxLength": 20,
+          "minLength": 1
+        },
+        "adresse": {
+          "title": "Adresse postale",
+          "type": "string",
+          "maxLength": 255
+        },
+        "date_naissance": {
+          "title": "Date de naissance",
+          "type": "string",
+          "format": "date",
+          "x-nullable": true
+        },
+        "profession": {
+          "title": "Profession",
+          "type": "string",
+          "maxLength": 150
+        },
+        "personne_a_prevenir": {
+          "title": "Personne à prévenir (garant)",
+          "description": "Nom et contact du garant ou de la personne à prévenir",
+          "type": "string",
+          "maxLength": 255
+        },
+        "nationalite": {
+          "title": "Nationalité",
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "revenus": {
+          "title": "Revenus mensuels",
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": 0
+        },
+        "cni": {
+          "title": "Pièce d'identité",
+          "type": "string",
+          "readOnly": true,
+          "x-nullable": true,
+          "format": "uri"
+        },
+        "fiche_paie": {
+          "title": "Fiches de paie",
+          "type": "string",
+          "readOnly": true,
+          "x-nullable": true,
+          "format": "uri"
+        },
+        "garant_nom": {
+          "title": "Nom du garant",
+          "type": "string",
+          "maxLength": 255
+        },
+        "garant_lien": {
+          "title": "Lien avec le garant",
+          "type": "string",
+          "maxLength": 100
+        },
+        "garant_telephone": {
+          "title": "Téléphone du garant",
+          "type": "string",
+          "maxLength": 20
+        },
+        "garant_email": {
+          "title": "Email du garant",
+          "type": "string",
+          "format": "email",
+          "maxLength": 254
+        },
+        "garant_profession": {
+          "title": "Profession du garant",
+          "type": "string",
+          "maxLength": 150
+        },
+        "garant_revenus": {
+          "title": "Revenus du garant",
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": 0
+        },
+        "password": {
+          "title": "Password",
+          "type": "string",
+          "minLength": 8
+        }
+      }
+    },
+    "Maintenance": {
+      "required": [
+        "titre",
+        "description",
+        "bien"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "bien_adresse": {
+          "title": "Bien adresse",
+          "type": "string",
+          "readOnly": true
+        },
+        "locataire_nom": {
+          "title": "Locataire nom",
+          "type": "string",
+          "readOnly": true
+        },
+        "statut_display": {
+          "title": "Statut display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "justificatif_url": {
+          "title": "Justificatif url",
+          "type": "string",
+          "readOnly": true
+        },
+        "titre": {
+          "title": "Titre",
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        "description": {
+          "title": "Description",
+          "type": "string",
+          "minLength": 1
+        },
+        "priorite": {
+          "title": "Priorité",
+          "type": "string",
+          "enum": [
+            "BASSE",
+            "MOYENNE",
+            "HAUTE",
+            "URGENT"
+          ]
+        },
+        "statut": {
+          "title": "Statut",
+          "type": "string",
+          "enum": [
+            "EN_ATTENTE",
+            "APPROUVE",
+            "EN_COURS",
+            "TERMINE",
+            "REFUSE"
+          ]
+        },
+        "cout_estime": {
+          "title": "Coût estimé (CFA)",
+          "type": "string",
+          "format": "decimal",
+          "x-nullable": true
+        },
+        "justificatif": {
+          "title": "Justificatif (photo/reçu)",
+          "type": "string",
+          "readOnly": true,
+          "x-nullable": true,
+          "format": "uri"
+        },
+        "justificatif_commentaire": {
+          "title": "Commentaire justificatif",
+          "type": "string"
+        },
+        "date_envoi_justificatif": {
+          "title": "Date d'envoi du justificatif",
+          "type": "string",
+          "format": "date-time",
+          "x-nullable": true
+        },
+        "date_signalement": {
+          "title": "Date signalement",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "created_at": {
+          "title": "Created at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "updated_at": {
+          "title": "Updated at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "bien": {
+          "title": "Bien",
+          "type": "integer"
+        },
+        "locataire": {
+          "title": "Locataire",
+          "type": "string",
+          "readOnly": true
+        }
+      }
+    },
+    "Message": {
+      "required": [
+        "destinataire",
+        "contenu"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "expediteur": {
+          "title": "Expéditeur",
+          "type": "integer",
+          "readOnly": true
+        },
+        "expediteur_nom": {
+          "title": "Expediteur nom",
+          "type": "string",
+          "readOnly": true
+        },
+        "destinataire": {
+          "title": "Destinataire",
+          "type": "integer"
+        },
+        "destinataire_nom": {
+          "title": "Destinataire nom",
+          "type": "string",
+          "readOnly": true
+        },
+        "contenu": {
+          "title": "Contenu",
+          "description": "Texte du message",
+          "type": "string",
+          "minLength": 1
+        },
+        "lu": {
+          "title": "Lu",
+          "type": "boolean",
+          "readOnly": true
+        },
+        "date_lecture": {
+          "title": "Date de lecture",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true,
+          "x-nullable": true
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "updated_at": {
+          "title": "Modifié le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "Notification": {
+      "required": [
+        "destinataire",
+        "type",
+        "message"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "destinataire": {
+          "title": "Destinataire",
+          "type": "integer"
+        },
+        "destinataire_nom": {
+          "title": "Destinataire nom",
+          "type": "string",
+          "readOnly": true
+        },
+        "type": {
+          "title": "Type de notification",
+          "type": "string",
+          "enum": [
+            "LOYER_IMPAYE",
+            "FIN_BAIL_PROCHE",
+            "REVISION_LOYER",
+            "QUITTANCE",
+            "DOCUMENT",
+            "MAINTENANCE"
+          ]
+        },
+        "type_display": {
+          "title": "Type display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "titre": {
+          "title": "Titre",
+          "description": "Titre de la notification",
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        "message": {
+          "title": "Message",
+          "description": "Contenu de la notification",
+          "type": "string",
+          "minLength": 1
+        },
+        "lu": {
+          "title": "Lu",
+          "type": "boolean"
+        },
+        "date_envoi": {
+          "title": "Date d'envoi",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "Paiement": {
+      "required": [
+        "bail",
+        "date_paiement",
+        "montant",
+        "reference"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "bail": {
+          "title": "Bail",
+          "type": "integer"
+        },
+        "bail_details": {
+          "title": "Bail details",
+          "type": "string",
+          "readOnly": true
+        },
+        "locataire": {
+          "title": "Locataire",
+          "type": "string",
+          "readOnly": true
+        },
+        "locataire_nom": {
+          "title": "Locataire nom",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "bien_nom": {
+          "title": "Bien nom",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "proprietaire_nom": {
+          "title": "Proprietaire nom",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "date_paiement": {
+          "title": "Date de paiement",
+          "type": "string",
+          "format": "date"
+        },
+        "montant": {
+          "title": "Montant payé (CFA)",
+          "type": "string",
+          "format": "decimal"
+        },
+        "commission_admin": {
+          "title": "Commission administrateur (CFA)",
+          "description": "10% du montant du paiement",
+          "type": "string",
+          "format": "decimal",
+          "readOnly": true
+        },
+        "montant_proprietaire": {
+          "title": "Montant net propriétaire (CFA)",
+          "description": "90% du montant du paiement",
+          "type": "string",
+          "format": "decimal",
+          "readOnly": true
+        },
+        "reference": {
+          "title": "Référence",
+          "description": "Ex : numéro de reçu T-Money / Flooz",
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "statut": {
+          "title": "Statut",
+          "type": "string",
+          "enum": [
+            "PAYE",
+            "EN_ATTENTE",
+            "EN_RETARD",
+            "FIN_BAIL_PROCHE",
+            "VALIDE",
+            "IMPAYE"
+          ]
+        },
+        "statut_display": {
+          "title": "Statut display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "updated_at": {
+          "title": "Modifié le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "Proprietaire": {
+      "required": [
+        "nom",
+        "prenom",
+        "email",
+        "telephone"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "nom": {
+          "title": "Nom de famille",
+          "type": "string",
+          "maxLength": 150,
+          "minLength": 1
+        },
+        "prenom": {
+          "title": "Prénom",
+          "type": "string",
+          "maxLength": 150,
+          "minLength": 1
+        },
+        "email": {
+          "title": "Adresse email",
+          "type": "string",
+          "format": "email",
+          "maxLength": 254,
+          "minLength": 1
+        },
+        "telephone": {
+          "title": "Numéro de téléphone",
+          "type": "string",
+          "maxLength": 20,
+          "minLength": 1
+        },
+        "adresse": {
+          "title": "Adresse postale",
+          "type": "string",
+          "maxLength": 255
+        },
+        "nobre_logement": {
+          "title": "Nombre de logements",
+          "description": "Peut être calculé dynamiquement à partir des biens associés",
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": 0
+        },
+        "nombre_biens": {
+          "title": "Nombre biens",
+          "type": "string",
+          "readOnly": true
+        },
+        "actif": {
+          "title": "Compte actif",
+          "type": "boolean"
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "ProprietaireCreate": {
+      "required": [
+        "nom",
+        "prenom",
+        "email",
+        "telephone",
+        "password"
+      ],
+      "type": "object",
+      "properties": {
+        "nom": {
+          "title": "Nom de famille",
+          "type": "string",
+          "maxLength": 150,
+          "minLength": 1
+        },
+        "prenom": {
+          "title": "Prénom",
+          "type": "string",
+          "maxLength": 150,
+          "minLength": 1
+        },
+        "email": {
+          "title": "Adresse email",
+          "type": "string",
+          "format": "email",
+          "maxLength": 254,
+          "minLength": 1
+        },
+        "telephone": {
+          "title": "Numéro de téléphone",
+          "type": "string",
+          "maxLength": 20,
+          "minLength": 1
+        },
+        "adresse": {
+          "title": "Adresse postale",
+          "type": "string",
+          "maxLength": 255
+        },
+        "nobre_logement": {
+          "title": "Nombre de logements",
+          "description": "Peut être calculé dynamiquement à partir des biens associés",
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": 0
+        },
+        "password": {
+          "title": "Password",
+          "type": "string",
+          "minLength": 8
+        }
+      }
+    },
+    "Quittance": {
+      "required": [
+        "paiement",
+        "montant_total"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "paiement": {
+          "title": "Paiement associé",
+          "type": "integer"
+        },
+        "paiement_reference": {
+          "title": "Paiement reference",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "date_emission": {
+          "title": "Date d'émission",
+          "type": "string",
+          "format": "date",
+          "readOnly": true
+        },
+        "montant_total": {
+          "title": "Montant total (CFA)",
+          "type": "string",
+          "format": "decimal"
+        },
+        "fichier_pdf": {
+          "title": "Fichier PDF",
+          "type": "string",
+          "readOnly": true,
+          "x-nullable": true,
+          "format": "uri"
+        },
+        "fichier_pdf_url": {
+          "title": "Fichier pdf url",
+          "type": "string",
+          "readOnly": true
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    },
+    "Utilisateur": {
+      "required": [
+        "nom",
+        "prenom",
+        "email",
+        "telephone"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "nom": {
+          "title": "Nom de famille",
+          "type": "string",
+          "maxLength": 150,
+          "minLength": 1
+        },
+        "prenom": {
+          "title": "Prénom",
+          "type": "string",
+          "maxLength": 150,
+          "minLength": 1
+        },
+        "email": {
+          "title": "Adresse email",
+          "type": "string",
+          "format": "email",
+          "maxLength": 254,
+          "minLength": 1
+        },
+        "telephone": {
+          "title": "Numéro de téléphone",
+          "type": "string",
+          "maxLength": 20,
+          "minLength": 1
+        },
+        "adresse": {
+          "title": "Adresse postale",
+          "type": "string",
+          "maxLength": 255
+        },
+        "role": {
+          "title": "Rôle",
+          "type": "string",
+          "enum": [
+            "ADMIN",
+            "PROPRIETAIRE",
+            "LOCATAIRE"
+          ]
+        },
+        "role_display": {
+          "title": "Role display",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        },
+        "actif": {
+          "title": "Compte actif",
+          "type": "boolean"
+        },
+        "created_at": {
+          "title": "Créé le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "updated_at": {
+          "title": "Modifié le",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        }
+      }
+    }
+  }
+}

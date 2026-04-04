@@ -90,6 +90,18 @@ class Utilisateur(AbstractUser):
     def __str__(self):
         return f"{self.prenom} {self.nom} ({self.get_role_display()})"
 
+    @property
+    def full_name(self):
+        return f"{self.prenom} {self.nom}"
+
+    @property
+    def first_name(self):
+        return self.prenom
+
+    @first_name.setter
+    def first_name(self, value):
+        self.prenom = value
+
     # ─── Méthodes métier ───
 
     def connexion(self):
@@ -191,6 +203,49 @@ class Locataire(Utilisateur):
         help_text=_('Nom et contact du garant ou de la personne à prévenir'),
     )
 
+    # Nouveaux champs pour le dossier de candidature
+    nationalite = models.CharField(
+        max_length=100,
+        default='Togolaise',
+        verbose_name=_('Nationalité'),
+    )
+    revenus = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_('Revenus mensuels'),
+    )
+    cni = models.ImageField(
+        upload_to='locataires/cni/',
+        null=True,
+        blank=True,
+        verbose_name=_('Pièce d\'identité'),
+    )
+    fiche_paie = models.FileField(
+        upload_to='locataires/fiches_paie/',
+        null=True,
+        blank=True,
+        verbose_name=_('Fiches de paie'),
+    )
+
+    # Informations détaillées du garant (optionnel)
+    garant_nom = models.CharField(max_length=255, blank=True, verbose_name=_('Nom du garant'))
+    garant_lien = models.CharField(max_length=100, blank=True, verbose_name=_('Lien avec le garant'))
+    garant_telephone = models.CharField(max_length=20, blank=True, verbose_name=_('Téléphone du garant'))
+    garant_email = models.EmailField(blank=True, verbose_name=_('Email du garant'))
+    garant_profession = models.CharField(max_length=150, blank=True, verbose_name=_('Profession du garant'))
+    garant_revenus = models.PositiveIntegerField(default=0, verbose_name=_('Revenus du garant'))
+
+    is_verified = models.BooleanField(
+        default=False,
+        verbose_name=_('Profil vérifié'),
+        help_text=_('Indique si les documents ont été validés par l\'administration'),
+    )
+    trust_score = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_('Score de confiance'),
+    )
+
+
+
     class Meta:
         verbose_name = _('Locataire')
         verbose_name_plural = _('Locataires')
@@ -201,6 +256,25 @@ class Locataire(Utilisateur):
     def save(self, *args, **kwargs):
         self.role = RoleUtilisateur.LOCATAIRE
         super().save(*args, **kwargs)
+
+    @property
+    def bail_actif(self):
+        """Retourne le premier bail actif du locataire."""
+        return self.bails.filter(statut='EN_COURS').select_related('bien').first()
+
+    @property
+    def garant(self):
+
+        """Retourne les infos du garant sous forme de dictionnaire."""
+        return {
+            'nom': self.garant_nom,
+            'lien': self.garant_lien,
+            'telephone': self.garant_telephone,
+            'email': self.garant_email,
+            'profession': self.garant_profession,
+            'revenus': self.garant_revenus,
+        }
+
 
 
 # ─────────────────────────────────────────────

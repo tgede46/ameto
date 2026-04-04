@@ -10,6 +10,8 @@ from .models import Notification, Message, TypeNotification
 from .serializers import NotificationSerializer, MessageSerializer
 from .services import NotificationService
 from utilisateur.models import Utilisateur
+from utilisateur.models import RoleUtilisateur
+from biens.models import Bail, Candidature
 
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -101,18 +103,43 @@ class MessageViewSet(viewsets.ModelViewSet):
     def conversations(self, request):
         """GET /api/messages/conversations/ — Liste des conversations groupées par utilisateur."""
         user = request.user
-        
-        # Trouver tous les utilisateurs avec qui on a échangé des messages
-        other_user_ids = Message.objects.filter(
+
+        # 1) Utilisateurs déjà contactés via messages
+        other_user_pairs = Message.objects.filter(
             Q(expediteur=user) | Q(destinataire=user)
         ).values_list('expediteur_id', 'destinataire_id')
-        
+
         # Flatten and unique, excluding self
         ids = set()
-        for exp, dest in other_user_ids:
-            if exp != user.id: ids.add(exp)
-            if dest != user.id: ids.add(dest)
-            
+        for exp, dest in other_user_pairs:
+            if exp != user.id:
+                ids.add(exp)
+            if dest != user.id:
+                ids.add(dest)
+
+        # 2) Interlocuteurs métiers possibles, même sans message existant
+        if user.role == RoleUtilisateur.PROPRIETAIRE:
+            locataire_ids = Bail.objects.filter(
+                bien__proprietaire_id=user.id
+            ).values_list('locataire_id', flat=True)
+            candidature_locataire_ids = Candidature.objects.filter(
+                bien__proprietaire_id=user.id
+            ).values_list('locataire_id', flat=True)
+            ids.update(locataire_ids)
+            ids.update(candidature_locataire_ids)
+
+        elif user.role == RoleUtilisateur.LOCATAIRE:
+            proprietaire_ids = Bail.objects.filter(
+                locataire_id=user.id
+            ).values_list('bien__proprietaire_id', flat=True)
+            candidature_proprietaire_ids = Candidature.objects.filter(
+                locataire_id=user.id
+            ).values_list('bien__proprietaire_id', flat=True)
+            ids.update(proprietaire_ids)
+            ids.update(candidature_proprietaire_ids)
+
+        ids.discard(user.id)
+
         conversations = []
         for other_id in ids:
             try:
@@ -126,9 +153,9 @@ class MessageViewSet(viewsets.ModelViewSet):
             ).order_by('-created_at').first()
             
             conversations.append({
-                'id': other_id, # On utilise l'ID de l'autre utilisateur comme ID de conversation
+                'id': other_id,  # On utilise l'ID de l'autre utilisateur comme ID de conversation
                 'other_user_id': other_id,
-                'other_user_nom': f"{other_user.first_name} {other_user.nom}",
+                'other_user_nom': f"{other_user.prenom} {other_user.nom}".strip(),
                 'other_user_role': other_user.role,
                 'last_message': last_msg.contenu if last_msg else '',
                 'last_message_date': last_msg.created_at if last_msg else None,
