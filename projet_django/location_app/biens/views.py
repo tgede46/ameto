@@ -612,13 +612,13 @@ class CandidatureViewSet(viewsets.ModelViewSet):
         if user.role == 'ADMIN':
             return Candidature.objects.all()
         elif user.role == 'PROPRIETAIRE':
-            # Si on est sur le frontend client (via API), le propriétaire ne doit voir 
-            # ses propres candidatures que s'il est aussi locataire (cas rare).
-            # Pour la console proprio, il y a d'autres endpoints ou on filtre par bien.
-            # Ici on restreint pour éviter la confusion sur le tableau de bord client.
+            # Pour un propriétaire, on affiche les candidatures reçues pour ses biens
+            # ET ses propres candidatures s'il en a (cas d'un proprio qui loue ailleurs)
+            from django.db.models import Q
+            queryset = Candidature.objects.filter(bien__proprietaire=user.proprietaire)
             if hasattr(user, 'locataire'):
-                return Candidature.objects.filter(locataire=user.locataire)
-            return Candidature.objects.none()
+                queryset = queryset | Candidature.objects.filter(locataire=user.locataire)
+            return queryset.distinct()
         elif user.role == 'LOCATAIRE':
             # Utiliser hasattr car c'est une relation OneToOne
             if hasattr(user, 'locataire'):
